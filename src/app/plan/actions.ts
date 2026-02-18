@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createTask } from "@/lib/tasks";
 import {
   completeTask,
@@ -28,6 +29,7 @@ export async function addSuggestedToTodayAction(formData: FormData): Promise<voi
   revalidatePath("/plan");
   revalidatePath("/tasks");
   revalidatePath("/progress");
+  redirect("/plan?success=added");
 }
 
 export async function completeTaskFormAction(formData: FormData): Promise<void> {
@@ -38,6 +40,7 @@ export async function completeTaskFormAction(formData: FormData): Promise<void> 
     revalidatePath("/plan");
     revalidatePath("/tasks");
     revalidatePath("/progress");
+    redirect("/plan?success=done");
   }
 }
 
@@ -49,6 +52,7 @@ export async function uncompleteTaskFormAction(formData: FormData): Promise<void
     revalidatePath("/plan");
     revalidatePath("/tasks");
     revalidatePath("/progress");
+    redirect("/plan?success=undone");
   }
 }
 
@@ -60,5 +64,6 @@ export async function deleteTaskFormAction(formData: FormData): Promise<void> {
     revalidatePath("/plan");
     revalidatePath("/tasks");
     revalidatePath("/progress");
+    redirect("/plan?success=deleted");
   }
 }

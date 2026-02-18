@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import { getTasksForDate, getSuggestedPlanForDate } from "@/lib/tasks";
 import type { SuggestedItem } from "@/lib/tasks";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { SuggestedPlan } from "@/components/plan/SuggestedPlan";
+import { SuccessBanner } from "@/components/ui/SuccessBanner";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
@@ -47,6 +49,10 @@ export default async function PlanPage() {
           Today’s sessions and suggested practice based on your progress.
         </p>
       </div>
+
+      <Suspense fallback={null}>
+        <SuccessBanner />
+      </Suspense>
 
       {error && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">

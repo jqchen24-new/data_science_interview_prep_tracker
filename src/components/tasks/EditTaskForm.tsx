@@ -26,9 +26,7 @@ export function EditTaskForm({
   const router = useRouter();
   const [state, formAction] = useActionState<{ error: string | null }, FormData>(
     async (_, formData) => {
-      const result = await updateTaskAction(taskId, formData);
-      if (!result.error) router.push("/tasks");
-      return result;
+      return updateTaskAction(taskId, formData);
     },
     { error: null }
   );

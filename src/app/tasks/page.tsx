@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { getAllTags } from "@/lib/tags";
 import { getTasks } from "@/lib/tasks";
 import { TaskForm } from "@/components/tasks/TaskForm";
+import { SuccessBanner } from "@/components/ui/SuccessBanner";
 import {
   completeTaskAction,
   uncompleteTaskAction,
@@ -30,6 +32,10 @@ export default async function TasksPage() {
           Study sessions with date, time, and tags.
         </p>
       </div>
+
+      <Suspense fallback={null}>
+        <SuccessBanner />
+      </Suspense>
 
       <TaskForm tagOptions={tags} />
 
