@@ -2,6 +2,12 @@
 
 Minimal web app to track study sessions, daily plans, and progress for data science interview prep. Built with Next.js (App Router), TypeScript, Tailwind, Prisma, and SQLite.
 
+## Screenshots
+
+| Dashboard | Applications | Progress |
+|-----------|--------------|----------|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Applications](docs/screenshots/applications.png) | ![Progress](docs/screenshots/progress.png) |
+
 ## Features
 
 - **Dashboard** – Today’s upcoming sessions and progress at a glance (total time, week, streak)

@@ -14,9 +14,17 @@ export function Card({
   );
 }
 
-export function CardTitle({ children }: { children: React.ReactNode }) {
+export function CardTitle({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <h2 className="mb-3 text-lg font-semibold text-neutral-900 dark:text-white">
+    <h2
+      className={`mb-3 text-lg font-semibold text-neutral-900 dark:text-white ${className}`}
+    >
       {children}
     </h2>
   );

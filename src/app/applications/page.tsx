@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getApplications, APPLICATION_STATUSES } from "@/lib/applications";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { SuccessBanner } from "@/components/ui/SuccessBanner";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { createApplicationAction } from "./actions";
@@ -15,9 +14,12 @@ export const dynamic = "force-dynamic";
 export default async function ApplicationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string | string[]; sort?: string | string[] }>;
+  searchParams: Promise<{ status?: string | string[]; sort?: string | string[]; error?: string | string[] }>;
 }) {
   const params = await searchParams;
+  const rawError = params.error;
+  const errorMsg =
+    typeof rawError === "string" ? rawError : Array.isArray(rawError) ? rawError[0] ?? "" : "";
   const rawStatus = params.status;
   const statusFilter =
     typeof rawStatus === "string" ? rawStatus.trim() : Array.isArray(rawStatus) ? rawStatus[0]?.trim() ?? "" : "";
@@ -47,6 +49,15 @@ export default async function ApplicationsPage({
       <Suspense fallback={null}>
         <SuccessBanner />
       </Suspense>
+
+      {errorMsg && (
+        <div
+          role="alert"
+          className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200"
+        >
+          {decodeURIComponent(errorMsg)}
+        </div>
+      )}
 
       <Card>
         <CardTitle>Add application</CardTitle>
