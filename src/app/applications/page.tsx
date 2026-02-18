@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { getApplications } from "@/lib/applications";
-import { APPLICATION_STATUSES } from "@/lib/applications";
+import { getApplications, APPLICATION_STATUSES } from "@/lib/applications";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { SuccessBanner } from "@/components/ui/SuccessBanner";
 import { Badge } from "@/components/ui/Badge";
@@ -16,9 +15,12 @@ export const dynamic = "force-dynamic";
 export default async function ApplicationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string | string[] }>;
 }) {
-  const { status: statusFilter } = await searchParams;
+  const params = await searchParams;
+  const raw = params.status;
+  const statusFilter =
+    typeof raw === "string" ? raw.trim() : Array.isArray(raw) ? raw[0]?.trim() ?? "" : "";
   const applications = await getApplications(
     statusFilter ? { status: statusFilter } : undefined
   );
@@ -105,9 +107,9 @@ export default async function ApplicationsPage({
       <Card>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <CardTitle className="mb-0">Applications</CardTitle>
-          <ApplicationsFilter currentStatus={statusFilter ?? ""} />
+          <ApplicationsFilter key={statusFilter || "all"} currentStatus={statusFilter || ""} />
         </div>
-        <ApplicationsList applications={applications} />
+        <ApplicationsList applications={applications} filterStatus={statusFilter || undefined} />
       </Card>
     </div>
   );

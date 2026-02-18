@@ -36,14 +36,15 @@ model TaskTag {
 }
 
 model Application {
-  id                String    @id @default(cuid())
-  company           String
-  role              String
-  status            String
-  appliedAt         DateTime
-  notes             String?
-  jobUrl            String?
+  id                 String    @id @default(cuid())
+  company            String
+  role               String
+  status             String
+  appliedAt          DateTime
+  statusUpdatedAt    DateTime? // when status was last changed
+  notes              String?
+  jobUrl             String?
   nextStepOrDeadline String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }

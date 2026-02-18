@@ -13,6 +13,7 @@ type App = {
   role: string;
   status: string;
   appliedAt: Date;
+  statusUpdatedAt: Date | null;
   notes: string | null;
   jobUrl: string | null;
   nextStepOrDeadline: string | null;
@@ -56,6 +57,11 @@ export function ApplicationEditForm({ app }: { app: App }) {
               </option>
             ))}
           </select>
+          {app.statusUpdatedAt && (
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              Status last updated {new Date(app.statusUpdatedAt).toLocaleDateString()}
+            </p>
+          )}
         </div>
         <Input
           label="Date applied"

@@ -6,6 +6,7 @@ import {
   createApplication,
   updateApplication,
   deleteApplication,
+  getApplicationById,
   APPLICATION_STATUSES,
   isValidStatus,
 } from "@/lib/applications";
@@ -59,11 +60,15 @@ export async function updateApplicationAction(formData: FormData) {
   if (Number.isNaN(appliedAt.getTime())) return { error: "Invalid date" };
   if (!status || !isValidStatus(status)) return { error: "Invalid status" };
 
+  const existing = await getApplicationById(id);
+  const statusChanged = existing && existing.status !== status;
+
   await updateApplication(id, {
     company,
     role,
     status,
     appliedAt,
+    ...(statusChanged && { statusUpdatedAt: new Date() }),
     notes,
     jobUrl,
     nextStepOrDeadline,

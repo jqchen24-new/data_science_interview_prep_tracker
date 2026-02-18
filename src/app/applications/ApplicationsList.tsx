@@ -10,16 +10,25 @@ type Application = {
   role: string;
   status: string;
   appliedAt: Date;
+  statusUpdatedAt: Date | null;
   notes: string | null;
   jobUrl: string | null;
   nextStepOrDeadline: string | null;
 };
 
-export function ApplicationsList({ applications }: { applications: Application[] }) {
+export function ApplicationsList({
+  applications,
+  filterStatus,
+}: {
+  applications: Application[];
+  filterStatus?: string;
+}) {
   if (applications.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-neutral-300 py-8 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-        No applications yet. Add one above.
+        {filterStatus
+          ? `No applications with status “${filterStatus}”. Try “All” or another filter.`
+          : "No applications yet. Add one above."}
       </p>
     );
   }
@@ -29,6 +38,9 @@ export function ApplicationsList({ applications }: { applications: Application[]
       {applications.map((app) => {
         const appliedAt = new Date(app.appliedAt);
         const dateStr = appliedAt.toLocaleDateString();
+        const statusUpdatedStr = app.statusUpdatedAt
+          ? new Date(app.statusUpdatedAt).toLocaleDateString()
+          : null;
         return (
           <li
             key={app.id}
@@ -40,6 +52,7 @@ export function ApplicationsList({ applications }: { applications: Application[]
               </p>
               <p className="text-sm text-neutral-500 dark:text-neutral-400">
                 Applied {dateStr}
+                {statusUpdatedStr && statusUpdatedStr !== dateStr && ` · Status updated ${statusUpdatedStr}`}
                 {app.nextStepOrDeadline && ` · ${app.nextStepOrDeadline}`}
               </p>
               <div className="mt-1">
