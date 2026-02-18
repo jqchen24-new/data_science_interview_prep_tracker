@@ -1,7 +1,7 @@
 import { getProgressStats } from "@/lib/progress";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { ProgressStats } from "@/components/progress/ProgressStats";
-import { TimeByTagChart } from "@/components/progress/TimeByTagChart";
+import { ProgressChartSection } from "@/components/progress/ProgressChartSection";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +23,7 @@ export default async function ProgressPage() {
 
       <Card>
         <CardTitle>Time by tag</CardTitle>
-        <TimeByTagChart data={stats.byTag} />
+        <ProgressChartSection data={stats.byTag} />
       </Card>
     </div>
   );

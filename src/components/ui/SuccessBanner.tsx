@@ -10,6 +10,9 @@ const MESSAGES: Record<string, string> = {
   added: "Added to today",
   created: "Task added",
   updated: "Task updated",
+  app_created: "Application added",
+  app_updated: "Application updated",
+  app_deleted: "Application deleted",
 };
 
 const AUTO_HIDE_MS = 3500;

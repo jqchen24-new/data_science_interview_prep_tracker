@@ -4,15 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const links = [
-  { href: "/", label: "Dashboard" },
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/plan", label: "Daily Plan" },
   { href: "/tasks", label: "Tasks" },
+  { href: "/applications", label: "Applications" },
   { href: "/progress", label: "Progress" },
   { href: "/tags", label: "Tags" },
 ];
 
 function isActive(pathname: string, href: string) {
-  if (href === "/") return pathname === "/";
+  if (href === "/dashboard") return pathname === "/dashboard" || pathname === "/";
   return pathname === href || pathname.startsWith(href + "/");
 }
 
@@ -23,7 +24,7 @@ export function Nav() {
     <nav className="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
       <div className="mx-auto flex h-14 max-w-4xl items-center gap-6 px-4">
         <Link
-          href="/"
+          href="/dashboard"
           className="font-semibold text-neutral-900 dark:text-white"
         >
           DS Prep
