@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import {
   createTask,
   updateTask,
@@ -37,7 +38,7 @@ export async function createTaskAction(formData: FormData) {
   revalidatePath("/tasks");
   revalidatePath("/plan");
   revalidatePath("/progress");
-  return { error: null };
+  redirect("/tasks?success=created");
 }
 
 export async function updateTaskAction(
@@ -66,7 +67,7 @@ export async function updateTaskAction(
   revalidatePath("/tasks");
   revalidatePath("/plan");
   revalidatePath("/progress");
-  return { error: null };
+  redirect("/tasks?success=updated");
 }
 
 export async function completeTaskAction(id: string) {
@@ -75,6 +76,7 @@ export async function completeTaskAction(id: string) {
   revalidatePath("/tasks");
   revalidatePath("/plan");
   revalidatePath("/progress");
+  redirect("/tasks?success=done");
 }
 
 export async function uncompleteTaskAction(id: string) {
@@ -83,6 +85,7 @@ export async function uncompleteTaskAction(id: string) {
   revalidatePath("/tasks");
   revalidatePath("/plan");
   revalidatePath("/progress");
+  redirect("/tasks?success=undone");
 }
 
 export async function deleteTaskAction(id: string) {
@@ -91,4 +94,5 @@ export async function deleteTaskAction(id: string) {
   revalidatePath("/tasks");
   revalidatePath("/plan");
   revalidatePath("/progress");
+  redirect("/tasks?success=deleted");
 }
