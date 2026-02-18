@@ -11,7 +11,7 @@ import {
   isValidStatus,
 } from "@/lib/applications";
 
-export async function createApplicationAction(formData: FormData) {
+export async function createApplicationAction(formData: FormData): Promise<void> {
   const company = (formData.get("company") as string)?.trim();
   const role = (formData.get("role") as string)?.trim();
   const status = formData.get("status") as string;
@@ -20,13 +20,21 @@ export async function createApplicationAction(formData: FormData) {
   const jobUrl = (formData.get("jobUrl") as string)?.trim() || null;
   const nextStepOrDeadline = (formData.get("nextStepOrDeadline") as string)?.trim() || null;
 
-  if (!company) return { error: "Company is required" };
-  if (!role) return { error: "Role is required" };
-  if (!appliedAtStr) return { error: "Date applied is required" };
+  if (!company) {
+    redirect(`/applications?error=${encodeURIComponent("Company is required")}`);
+  }
+  if (!role) {
+    redirect(`/applications?error=${encodeURIComponent("Role is required")}`);
+  }
+  if (!appliedAtStr) {
+    redirect(`/applications?error=${encodeURIComponent("Date applied is required")}`);
+  }
   const appliedAt = new Date(appliedAtStr);
-  if (Number.isNaN(appliedAt.getTime())) return { error: "Invalid date" };
+  if (Number.isNaN(appliedAt.getTime())) {
+    redirect(`/applications?error=${encodeURIComponent("Invalid date")}`);
+  }
   if (!status || !APPLICATION_STATUSES.includes(status as (typeof APPLICATION_STATUSES)[number])) {
-    return { error: "Invalid status" };
+    redirect(`/applications?error=${encodeURIComponent("Invalid status")}`);
   }
 
   await createApplication({

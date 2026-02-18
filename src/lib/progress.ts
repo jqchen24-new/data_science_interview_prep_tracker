@@ -39,15 +39,59 @@ export async function getProgressStats() {
   const weekStart = new Date();
   weekStart.setDate(weekStart.getDate() - weekStart.getDay());
   weekStart.setHours(0, 0, 0, 0);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+  weekEnd.setHours(23, 59, 59, 999);
   const weekMinutes = tasks
-    .filter((t) => t.completedAt && t.completedAt >= weekStart)
+    .filter((t) => t.completedAt && t.completedAt >= weekStart && t.completedAt <= weekEnd)
     .reduce((sum, t) => sum + (t.durationMinutes ?? 30), 0);
+
+  const lastWeekStart = new Date(weekStart);
+  lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+  const lastWeekEnd = new Date(lastWeekStart);
+  lastWeekEnd.setDate(lastWeekEnd.getDate() + 6);
+  lastWeekEnd.setHours(23, 59, 59, 999);
+  const lastWeekMinutes = tasks
+    .filter(
+      (t) =>
+        t.completedAt &&
+        t.completedAt >= lastWeekStart &&
+        t.completedAt <= lastWeekEnd
+    )
+    .reduce((sum, t) => sum + (t.durationMinutes ?? 30), 0);
+
+  const weeklyData: { week: string; minutes: number }[] = [];
+  for (let i = 3; i >= 0; i--) {
+    const ws = new Date(weekStart);
+    ws.setDate(ws.getDate() - 7 * i);
+    const we = new Date(ws);
+    we.setDate(we.getDate() + 6);
+    we.setHours(23, 59, 59, 999);
+    const mins = tasks
+      .filter(
+        (t) => t.completedAt && t.completedAt >= ws && t.completedAt <= we
+      )
+      .reduce((sum, t) => sum + (t.durationMinutes ?? 30), 0);
+    weeklyData.push({
+      week: i === 0 ? "This" : `${i}w`,
+      minutes: mins,
+    });
+  }
+
+  const [totalTasksCount, completedTasksCount] = await Promise.all([
+    prisma.task.count(),
+    prisma.task.count({ where: { completedAt: { not: null } } }),
+  ]);
 
   return {
     totalMinutes,
     weekMinutes,
+    lastWeekMinutes,
+    weeklyData,
     byTag,
     streak,
     completedCount: tasks.length,
+    totalTasksCount,
+    completedTasksCount,
   };
 }
