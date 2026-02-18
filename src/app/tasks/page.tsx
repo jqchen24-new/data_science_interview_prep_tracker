@@ -18,9 +18,12 @@ export default async function TasksPage() {
   const upcoming = allTasks.filter(
     (t) => !t.completedAt && new Date(t.scheduledAt) >= now
   );
-  const past = allTasks.filter(
-    (t) => t.completedAt || new Date(t.scheduledAt) < now
-  );
+  const past = allTasks
+    .filter((t) => t.completedAt || new Date(t.scheduledAt) < now)
+    .sort(
+      (a, b) =>
+        new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime()
+    );
 
   return (
     <div className="space-y-8">

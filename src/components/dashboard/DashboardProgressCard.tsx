@@ -43,8 +43,9 @@ export function DashboardProgressCard({
   const weekDiff = weekMinutes - lastWeekMinutes;
   const topTag = byTag[0];
   const pieData = byTag.slice(0, 5).map((t, i) => ({
-    name: `${t.minutes} min ${t.name}`,
+    name: t.name,
     value: t.minutes,
+    label: `${t.minutes} min ${t.name}`,
     color: TAG_COLORS[i % TAG_COLORS.length],
   }));
 
@@ -74,24 +75,42 @@ export function DashboardProgressCard({
             )}
           </div>
           {pieData.length > 0 && (
-            <div className="h-24 w-24 shrink-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={28}
-                    outerRadius={40}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {pieData.map((_, i) => (
-                      <Cell key={i} fill={pieData[i].color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
+            <div className="flex flex-col gap-2">
+              <div className="h-28 w-28 shrink-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={32}
+                      outerRadius={48}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {pieData.map((_, i) => (
+                        <Cell key={i} fill={pieData[i].color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(v: number, _n: string, props: { payload?: { label?: string } }) =>
+                        [props?.payload?.label ?? `${v} min`, ""]
+                      }
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-neutral-600 dark:text-neutral-400">
+                {pieData.map((d, i) => (
+                  <li key={i} className="flex items-center gap-1.5">
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: d.color }}
+                    />
+                    {d.label}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
