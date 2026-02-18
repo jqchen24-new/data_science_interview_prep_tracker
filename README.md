@@ -4,8 +4,10 @@ Minimal web app to track study sessions, daily plans, and progress for data scie
 
 ## Features
 
-- **Tasks** – Study sessions with title, duration, scheduled date/time, and tags
+- **Dashboard** – Today’s upcoming sessions and progress at a glance (total time, week, streak)
 - **Daily plan** – Suggested sessions for today (based on least-practiced tags) and your scheduled tasks
+- **Tasks** – Study sessions with title, duration, scheduled date/time, and tags
+- **Applications** – Track job applications (company, role, status, date applied, notes, next step). Filter by status; status-updated date is recorded when you change status
 - **Progress** – Total time, this week’s time, streak, and time-by-tag chart
 - **Tags** – Fixed (SQL, ML, Stats, Python, Behavioral) plus custom tags
 
@@ -44,7 +46,7 @@ No auth in v1 (single-user, local).
    npm run dev
    ```
 
-   Open [http://localhost:3000](http://localhost:3000).
+   Open [http://localhost:3000](http://localhost:3000). The root redirects to `/dashboard`.
 
 ## Scripts
 
@@ -65,7 +67,7 @@ No auth in v1 (single-user, local).
 
 ## File structure (main)
 
-- `prisma/schema.prisma` – Tag, Task, TaskTag
-- `src/app/` – Routes: `/` (dashboard), `/plan`, `/tasks`, `/tasks/[id]`, `/progress`, `/tags`
-- `src/components/` – Layout, tasks, plan, progress, ui
-- `src/lib/` – `db`, `tags`, `tasks`, `progress`
+- `prisma/schema.prisma` – Tag, Task, TaskTag, Application
+- `src/app/` – Routes: `/` (redirects to dashboard), `/dashboard`, `/plan`, `/tasks`, `/tasks/[id]`, `/applications`, `/applications/[id]`, `/progress`, `/tags`
+- `src/components/` – Layout (Nav, PageContainer), tasks, plan, progress, applications, ui
+- `src/lib/` – `db`, `tags`, `tasks`, `progress`, `applications`
