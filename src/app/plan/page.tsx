@@ -71,6 +71,9 @@ export default async function PlanPage() {
 
       <Card>
         <CardTitle>Suggested for today</CardTitle>
+        <p className="mb-2 text-sm text-neutral-500 dark:text-neutral-400">
+          Based on tags you haven’t practiced recently, then by least total time.
+        </p>
         <SuggestedPlan items={suggested ?? []} />
       </Card>
 

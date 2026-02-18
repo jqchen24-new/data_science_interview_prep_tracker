@@ -14,9 +14,6 @@ export function SuggestedPlan({ items = [] }: { items?: SuggestedItem[] }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-sm text-neutral-600 dark:text-neutral-400">
-        Based on your recent activity, consider adding:
-      </p>
       <ul className="space-y-2">
         {list.map((item) => (
           <li key={item.tagId}>

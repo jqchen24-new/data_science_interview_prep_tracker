@@ -107,6 +107,8 @@ export async function deleteTask(id: string) {
 const SUGGESTED_SESSIONS = 4;
 const SUGGESTED_TOTAL_MINUTES = 120;
 const LOOKBACK_DAYS = 14;
+/** Tags never practiced get this many "days ago" so they rank first */
+const DAYS_IF_NEVER_PRACTICED = 999;
 
 export async function getSuggestedPlanForDate(date: Date): Promise<SuggestedItem[]> {
   const tags = await prisma.tag.findMany({ orderBy: { name: "asc" } });
@@ -123,20 +125,42 @@ export async function getSuggestedPlanForDate(date: Date): Promise<SuggestedItem
   });
 
   const minutesByTagId = new Map<string, number>();
+  const lastPracticedByTagId = new Map<string, Date>();
+
   for (const tag of tags) {
     minutesByTagId.set(tag.id, 0);
   }
   for (const task of completed) {
     const mins = task.durationMinutes ?? 30;
+    const completedAt = task.completedAt!;
     for (const tt of task.tags) {
       const current = minutesByTagId.get(tt.tagId) ?? 0;
       minutesByTagId.set(tt.tagId, current + mins);
+      const existing = lastPracticedByTagId.get(tt.tagId);
+      if (!existing || completedAt > existing) {
+        lastPracticedByTagId.set(tt.tagId, completedAt);
+      }
     }
   }
 
+  const dateOnly = new Date(date);
+  dateOnly.setHours(0, 0, 0, 0);
+
   const sorted = [...tags]
-    .map((tag) => ({ tag, minutes: minutesByTagId.get(tag.id) ?? 0 }))
-    .sort((a, b) => a.minutes - b.minutes);
+    .map((tag) => {
+      const minutes = minutesByTagId.get(tag.id) ?? 0;
+      const lastPracticed = lastPracticedByTagId.get(tag.id);
+      const daysSinceLastPracticed = lastPracticed
+        ? Math.floor((dateOnly.getTime() - new Date(lastPracticed).setHours(0, 0, 0, 0)) / (24 * 60 * 60 * 1000))
+        : DAYS_IF_NEVER_PRACTICED;
+      return { tag, minutes, daysSinceLastPracticed };
+    })
+    .sort((a, b) => {
+      if (a.daysSinceLastPracticed !== b.daysSinceLastPracticed) {
+        return b.daysSinceLastPracticed - a.daysSinceLastPracticed;
+      }
+      return a.minutes - b.minutes;
+    });
 
   const result: SuggestedItem[] = [];
   let total = 0;
