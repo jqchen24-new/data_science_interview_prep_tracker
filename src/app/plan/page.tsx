@@ -39,6 +39,14 @@ async function loadPlanData() {
 export default async function PlanPage() {
   const { todayTasks, suggested, error } = await loadPlanData();
 
+  // Exclude from suggestions any tag already in today's plan
+  const tagIdsInTodaysPlan = new Set(
+    (todayTasks ?? []).flatMap((t) => t.tags.map((tt) => tt.tagId))
+  );
+  const suggestedFiltered = (suggested ?? []).filter(
+    (item) => !tagIdsInTodaysPlan.has(item.tagId)
+  );
+
   return (
     <div className="space-y-8">
       <div>
@@ -80,7 +88,7 @@ export default async function PlanPage() {
         <p className="mb-2 text-sm text-neutral-500 dark:text-neutral-400">
           Based on tags you haven’t practiced recently, then by least total time.
         </p>
-        <SuggestedPlan items={suggested ?? []} />
+        <SuggestedPlan items={suggestedFiltered} />
       </Card>
 
       <Card>
