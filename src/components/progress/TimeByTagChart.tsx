@@ -36,11 +36,17 @@ export function TimeByTagChart({ data = [] }: TimeByTagChartProps) {
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
-          margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+          margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
           layout="vertical"
         >
           <XAxis type="number" tickFormatter={(v) => `${v} min`} />
-          <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12 }} />
+          <YAxis
+            type="category"
+            dataKey="name"
+            width={120}
+            tick={{ fontSize: 12 }}
+            interval={0}
+          />
           <Tooltip
             formatter={(value: number) => [`${value} min`, "Minutes"]}
             labelFormatter={(label) => label}
