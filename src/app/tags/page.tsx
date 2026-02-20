@@ -14,7 +14,7 @@ export default async function TagsPage() {
           Tags
         </h1>
         <p className="mt-1 text-neutral-600 dark:text-neutral-400">
-          Fixed (SQL, ML, Stats, Python, Behavioral) and your custom tags.
+          Add, edit, or remove tags. Defaults (SQL, ML, Stats, Python, Behavioral) are created when you seed the database.
         </p>
       </div>
 

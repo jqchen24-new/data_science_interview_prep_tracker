@@ -15,7 +15,7 @@ Minimal web app to track study sessions, daily plans, and progress for data scie
 - **Tasks** – Study sessions with title, duration, scheduled date/time, and tags
 - **Applications** – Track job applications (company, role, status, date applied, notes, next step). Filter by status; status-updated date is recorded when you change status
 - **Progress** – Total time, this week’s time, streak, and time-by-tag chart
-- **Tags** – Fixed (SQL, ML, Stats, Python, Behavioral) plus custom tags
+- **Tags** – Default tags (SQL, ML, Stats, Python, Behavioral) plus any you add; all editable
 
 No auth in v1 (single-user, local).
 
@@ -44,7 +44,7 @@ No auth in v1 (single-user, local).
    npx prisma db seed
    ```
 
-   This creates the SQLite DB and seeds the 5 fixed tags.
+   This creates the SQLite DB and seeds the 5 default tags.
 
 4. **Dev server**
 
@@ -63,7 +63,7 @@ No auth in v1 (single-user, local).
 | `npm run start`   | Start production server    |
 | `npm run lint`    | Run ESLint                 |
 | `npx prisma migrate dev` | Create/apply migrations |
-| `npx prisma db seed`     | Seed fixed tags          |
+| `npx prisma db seed`     | Seed default tags        |
 
 ## Tech
 

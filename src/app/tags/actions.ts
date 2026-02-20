@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createTag, deleteTag } from "@/lib/tags";
+import { createTag, updateTag, deleteTag } from "@/lib/tags";
 
 export async function createTagAction(formData: FormData) {
   const name = (formData.get("name") as string)?.trim();
@@ -15,6 +15,24 @@ export async function createTagAction(formData: FormData) {
   } catch (e) {
     return {
       error: e instanceof Error ? e.message : "Failed to create tag",
+    };
+  }
+}
+
+export async function updateTagAction(formData: FormData) {
+  const id = formData.get("id") as string;
+  const name = (formData.get("name") as string)?.trim();
+  if (!id) return { error: "Tag is required" };
+  if (!name) return { error: "Name is required" };
+  try {
+    await updateTag(id, name);
+    revalidatePath("/tags");
+    revalidatePath("/tasks");
+    revalidatePath("/plan");
+    return { error: null };
+  } catch (e) {
+    return {
+      error: e instanceof Error ? e.message : "Failed to update tag",
     };
   }
 }

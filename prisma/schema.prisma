@@ -8,11 +8,10 @@ datasource db {
 }
 
 model Tag {
-  id       String   @id @default(cuid())
-  name     String
-  slug     String   @unique
-  isSystem Boolean  @default(false)
-  tasks    TaskTag[]
+  id    String   @id @default(cuid())
+  name  String
+  slug  String   @unique
+  tasks TaskTag[]
 }
 
 model Task {
