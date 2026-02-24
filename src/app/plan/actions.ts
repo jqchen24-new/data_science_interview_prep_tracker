@@ -20,7 +20,7 @@ export async function addSuggestedToTodayAction(formData: FormData): Promise<voi
   today.setHours(12, 0, 0, 0);
 
   await createTask({
-    title: `${tagName} practice`,
+    title: tagName,
     durationMinutes: suggestedMinutes,
     scheduledAt: today,
     tagIds: [tagId],
