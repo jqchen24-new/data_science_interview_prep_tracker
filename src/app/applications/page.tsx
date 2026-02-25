@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { auth } from "@/lib/auth";
 import { getApplications, APPLICATION_STATUSES } from "@/lib/applications";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { SuccessBanner } from "@/components/ui/SuccessBanner";
@@ -16,6 +17,10 @@ export default async function ApplicationsPage({
 }: {
   searchParams: Promise<{ status?: string | string[]; sort?: string | string[]; error?: string | string[] }>;
 }) {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return null;
+
   const params = await searchParams;
   const rawError = params.error;
   const errorMsg =
@@ -28,7 +33,7 @@ export default async function ApplicationsPage({
     typeof rawSort === "string" ? rawSort.trim() : Array.isArray(rawSort) ? rawSort[0]?.trim() ?? "" : "";
   const sort: "applied" | "statusUpdated" =
     sortParam === "statusUpdated" ? "statusUpdated" : "applied";
-  const applications = await getApplications({
+  const applications = await getApplications(userId, {
     ...(statusFilter && { status: statusFilter }),
     sort,
   });

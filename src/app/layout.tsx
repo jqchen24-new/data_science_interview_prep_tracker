@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Nav } from "@/components/layout/Nav";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { SessionProvider } from "@/components/providers/SessionProvider";
 
 export const metadata: Metadata = {
   title: "DS Interview Prep Tracker",
@@ -16,8 +17,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen antialiased">
-        <Nav />
-        <PageContainer>{children}</PageContainer>
+        <SessionProvider>
+          <Nav />
+          <PageContainer>{children}</PageContainer>
+        </SessionProvider>
       </body>
     </html>
   );

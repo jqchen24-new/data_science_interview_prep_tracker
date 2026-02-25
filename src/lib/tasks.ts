@@ -4,13 +4,16 @@ import { prisma } from "./db";
 export type TaskWithTags = Awaited<ReturnType<typeof getTaskById>>;
 export type SuggestedItem = { tagId: string; tagName: string; tagSlug: string; suggestedMinutes: number };
 
-export async function getTasks(filters?: {
-  from?: Date;
-  to?: Date;
-  tagId?: string;
-  completed?: boolean;
-}) {
-  const where: Prisma.TaskWhereInput = {};
+export async function getTasks(
+  userId: string,
+  filters?: {
+    from?: Date;
+    to?: Date;
+    tagId?: string;
+    completed?: boolean;
+  }
+) {
+  const where: Prisma.TaskWhereInput = { userId };
   if (filters?.from || filters?.to) {
     where.scheduledAt = {};
     if (filters.from) (where.scheduledAt as { gte?: Date; lte?: Date }).gte = filters.from;
@@ -29,31 +32,35 @@ export async function getTasks(filters?: {
   });
 }
 
-export async function getTasksForDate(date: Date) {
+export async function getTasksForDate(userId: string, date: Date) {
   const start = new Date(date);
   start.setHours(0, 0, 0, 0);
   const end = new Date(date);
   end.setHours(23, 59, 59, 999);
-  return getTasks({ from: start, to: end });
+  return getTasks(userId, { from: start, to: end });
 }
 
-export async function getTaskById(id: string) {
-  return prisma.task.findUnique({
-    where: { id },
+export async function getTaskById(userId: string, id: string) {
+  return prisma.task.findFirst({
+    where: { id, userId },
     include: { tags: { include: { tag: true } } },
   });
 }
 
-export async function createTask(data: {
-  title: string;
-  durationMinutes?: number | null;
-  scheduledAt: Date;
-  tagIds: string[];
-}) {
+export async function createTask(
+  userId: string,
+  data: {
+    title: string;
+    durationMinutes?: number | null;
+    scheduledAt: Date;
+    tagIds: string[];
+  }
+) {
   const { tagIds, ...rest } = data;
   return prisma.task.create({
     data: {
       ...rest,
+      userId,
       tags: { create: tagIds.map((tagId) => ({ tagId })) },
     },
     include: { tags: { include: { tag: true } } },
@@ -61,6 +68,7 @@ export async function createTask(data: {
 }
 
 export async function updateTask(
+  userId: string,
   id: string,
   data: {
     title?: string;
@@ -78,30 +86,30 @@ export async function updateTask(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- tagIds handled above
   const { tagIds: _tagIds, ...rest } = data;
   return prisma.task.update({
-    where: { id },
+    where: { id, userId },
     data: rest,
     include: { tags: { include: { tag: true } } },
   });
 }
 
-export async function completeTask(id: string) {
+export async function completeTask(userId: string, id: string) {
   return prisma.task.update({
-    where: { id },
+    where: { id, userId },
     data: { completedAt: new Date() },
     include: { tags: { include: { tag: true } } },
   });
 }
 
-export async function uncompleteTask(id: string) {
+export async function uncompleteTask(userId: string, id: string) {
   return prisma.task.update({
-    where: { id },
+    where: { id, userId },
     data: { completedAt: null },
     include: { tags: { include: { tag: true } } },
   });
 }
 
-export async function deleteTask(id: string) {
-  return prisma.task.delete({ where: { id } });
+export async function deleteTask(userId: string, id: string) {
+  return prisma.task.delete({ where: { id, userId } });
 }
 
 const SUGGESTED_SESSIONS = 5;
@@ -111,7 +119,10 @@ const LOOKBACK_DAYS = 14;
 /** Tags never practiced get this many "days ago" so they rank first */
 const DAYS_IF_NEVER_PRACTICED = 999;
 
-export async function getSuggestedPlanForDate(date: Date): Promise<SuggestedItem[]> {
+export async function getSuggestedPlanForDate(
+  userId: string,
+  date: Date
+): Promise<SuggestedItem[]> {
   const tags = await prisma.tag.findMany({ orderBy: { name: "asc" } });
   const lookbackStart = new Date(date);
   lookbackStart.setDate(lookbackStart.getDate() - LOOKBACK_DAYS);
@@ -119,12 +130,13 @@ export async function getSuggestedPlanForDate(date: Date): Promise<SuggestedItem
 
   // All completed tasks: used for "last practiced" (when you actually did it)
   const allCompleted = await prisma.task.findMany({
-    where: { completedAt: { not: null } },
+    where: { userId, completedAt: { not: null } },
     include: { tags: { include: { tag: true } } },
   });
   // Completions in lookback window: for "minutes practiced" in last 14 days
   const completedInLookback = await prisma.task.findMany({
     where: {
+      userId,
       completedAt: { not: null, gte: lookbackStart },
     },
     include: { tags: { include: { tag: true } } },

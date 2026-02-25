@@ -2,14 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createTask } from "@/lib/tasks";
-import {
-  completeTask,
-  uncompleteTask,
-  deleteTask,
-} from "@/lib/tasks";
+import { auth } from "@/lib/auth";
+import { createTask, completeTask, uncompleteTask, deleteTask } from "@/lib/tasks";
 
 export async function addSuggestedToTodayAction(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/signin");
+
   const tagId = formData.get("tagId") as string;
   const tagName = formData.get("tagName") as string;
   const suggestedMinutes = parseInt(formData.get("suggestedMinutes") as string, 10) || 30;
@@ -19,7 +18,7 @@ export async function addSuggestedToTodayAction(formData: FormData): Promise<voi
   const today = new Date();
   today.setHours(12, 0, 0, 0);
 
-  await createTask({
+  await createTask(session.user.id, {
     title: tagName,
     durationMinutes: suggestedMinutes,
     scheduledAt: today,
@@ -33,9 +32,11 @@ export async function addSuggestedToTodayAction(formData: FormData): Promise<voi
 }
 
 export async function completeTaskFormAction(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/signin");
   const taskId = formData.get("taskId") as string;
   if (taskId) {
-    await completeTask(taskId);
+    await completeTask(session.user.id, taskId);
     revalidatePath("/");
     revalidatePath("/plan");
     revalidatePath("/tasks");
@@ -45,9 +46,11 @@ export async function completeTaskFormAction(formData: FormData): Promise<void> 
 }
 
 export async function uncompleteTaskFormAction(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/signin");
   const taskId = formData.get("taskId") as string;
   if (taskId) {
-    await uncompleteTask(taskId);
+    await uncompleteTask(session.user.id, taskId);
     revalidatePath("/");
     revalidatePath("/plan");
     revalidatePath("/tasks");
@@ -57,9 +60,11 @@ export async function uncompleteTaskFormAction(formData: FormData): Promise<void
 }
 
 export async function deleteTaskFormAction(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/signin");
   const taskId = formData.get("taskId") as string;
   if (taskId) {
-    await deleteTask(taskId);
+    await deleteTask(session.user.id, taskId);
     revalidatePath("/");
     revalidatePath("/plan");
     revalidatePath("/tasks");

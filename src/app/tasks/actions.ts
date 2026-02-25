@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import {
   createTask,
   updateTask,
@@ -16,6 +17,9 @@ export type Task = Prisma.TaskGetPayload<{
 }>;
 
 export async function createTaskAction(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/signin");
+
   const title = formData.get("title") as string;
   const scheduledAt = formData.get("scheduledAt") as string;
   const durationMinutes = formData.get("durationMinutes")
@@ -28,7 +32,7 @@ export async function createTaskAction(formData: FormData) {
   const date = new Date(scheduledAt);
   if (isNaN(date.getTime())) return { error: "Invalid date/time" };
 
-  await createTask({
+  await createTask(session.user.id, {
     title: title.trim(),
     durationMinutes: durationMinutes ?? null,
     scheduledAt: date,
@@ -45,6 +49,9 @@ export async function updateTaskAction(
   id: string,
   formData: FormData
 ) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/signin");
+
   const title = formData.get("title") as string;
   const scheduledAt = formData.get("scheduledAt") as string;
   const durationMinutes = formData.get("durationMinutes")
@@ -57,7 +64,7 @@ export async function updateTaskAction(
   const date = new Date(scheduledAt);
   if (isNaN(date.getTime())) return { error: "Invalid date/time" };
 
-  await updateTask(id, {
+  await updateTask(session.user.id, id, {
     title: title.trim(),
     durationMinutes: durationMinutes ?? null,
     scheduledAt: date,
@@ -71,7 +78,9 @@ export async function updateTaskAction(
 }
 
 export async function completeTaskAction(id: string) {
-  await completeTask(id);
+  const session = await auth();
+  if (!session?.user?.id) redirect("/signin");
+  await completeTask(session.user.id, id);
   revalidatePath("/");
   revalidatePath("/tasks");
   revalidatePath("/plan");
@@ -80,7 +89,9 @@ export async function completeTaskAction(id: string) {
 }
 
 export async function uncompleteTaskAction(id: string) {
-  await uncompleteTask(id);
+  const session = await auth();
+  if (!session?.user?.id) redirect("/signin");
+  await uncompleteTask(session.user.id, id);
   revalidatePath("/");
   revalidatePath("/tasks");
   revalidatePath("/plan");
@@ -89,7 +100,9 @@ export async function uncompleteTaskAction(id: string) {
 }
 
 export async function deleteTaskAction(id: string) {
-  await deleteTask(id);
+  const session = await auth();
+  if (!session?.user?.id) redirect("/signin");
+  await deleteTask(session.user.id, id);
   revalidatePath("/");
   revalidatePath("/tasks");
   revalidatePath("/plan");

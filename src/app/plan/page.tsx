@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { auth } from "@/lib/auth";
 import { getTasksForDate, getSuggestedPlanForDate } from "@/lib/tasks";
 import type { SuggestedItem } from "@/lib/tasks";
 import { Card, CardTitle } from "@/components/ui/Card";
@@ -17,12 +18,12 @@ export const dynamic = "force-dynamic";
 
 type TaskWithTags = Awaited<ReturnType<typeof getTasksForDate>>[number];
 
-async function loadPlanData() {
+async function loadPlanData(userId: string) {
   const today = new Date();
   try {
     const [todayTasks, suggested] = await Promise.all([
-      getTasksForDate(today),
-      getSuggestedPlanForDate(today),
+      getTasksForDate(userId, today),
+      getSuggestedPlanForDate(userId, today),
     ]);
     return { todayTasks, suggested, error: null as string | null };
   } catch (e) {
@@ -37,7 +38,11 @@ async function loadPlanData() {
 }
 
 export default async function PlanPage() {
-  const { todayTasks, suggested, error } = await loadPlanData();
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return null;
+
+  const { todayTasks, suggested, error } = await loadPlanData(userId);
 
   // Exclude from suggestions any tag already in today's plan
   const tagIdsInTodaysPlan = new Set(

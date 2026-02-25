@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import {
   createApplication,
   updateApplication,
@@ -12,6 +13,9 @@ import {
 } from "@/lib/applications";
 
 export async function createApplicationAction(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/signin");
+
   const company = (formData.get("company") as string)?.trim();
   const role = (formData.get("role") as string)?.trim();
   const status = formData.get("status") as string;
@@ -37,7 +41,7 @@ export async function createApplicationAction(formData: FormData): Promise<void>
     redirect(`/applications?error=${encodeURIComponent("Invalid status")}`);
   }
 
-  await createApplication({
+  await createApplication(session.user.id, {
     company,
     role,
     status,
@@ -51,6 +55,9 @@ export async function createApplicationAction(formData: FormData): Promise<void>
 }
 
 export async function updateApplicationAction(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/signin");
+
   const id = formData.get("id") as string;
   if (!id) return { error: "Missing application id" };
   const company = (formData.get("company") as string)?.trim();
@@ -68,10 +75,10 @@ export async function updateApplicationAction(formData: FormData) {
   if (Number.isNaN(appliedAt.getTime())) return { error: "Invalid date" };
   if (!status || !isValidStatus(status)) return { error: "Invalid status" };
 
-  const existing = await getApplicationById(id);
+  const existing = await getApplicationById(session.user.id, id);
   const statusChanged = existing && existing.status !== status;
 
-  await updateApplication(id, {
+  await updateApplication(session.user.id, id, {
     company,
     role,
     status,
@@ -86,9 +93,11 @@ export async function updateApplicationAction(formData: FormData) {
 }
 
 export async function deleteApplicationAction(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/signin");
   const id = formData.get("id") as string;
   if (id) {
-    await deleteApplication(id);
+    await deleteApplication(session.user.id, id);
     revalidatePath("/applications");
     redirect("/applications?success=app_deleted");
   }

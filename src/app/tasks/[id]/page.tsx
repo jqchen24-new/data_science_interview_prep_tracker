@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { auth } from "@/lib/auth";
 import { getTaskById } from "@/lib/tasks";
 import { getAllTags } from "@/lib/tags";
 import { EditTaskForm } from "@/components/tasks/EditTaskForm";
@@ -12,8 +13,12 @@ export default async function TaskEditPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return null;
+
   const { id } = await params;
-  const [task, tags] = await Promise.all([getTaskById(id), getAllTags()]);
+  const [task, tags] = await Promise.all([getTaskById(userId, id), getAllTags()]);
   if (!task) notFound();
 
   const scheduled = new Date(task.scheduledAt);

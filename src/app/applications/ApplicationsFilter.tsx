@@ -1,6 +1,9 @@
 "use client";
 
-import { APPLICATION_STATUSES, type ApplicationSort } from "@/lib/applications";
+import {
+  APPLICATION_STATUSES,
+  type ApplicationSort,
+} from "@/lib/application-constants";
 
 export function ApplicationsFilter({
   currentStatus,

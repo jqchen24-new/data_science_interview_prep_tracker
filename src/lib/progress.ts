@@ -1,8 +1,8 @@
 import { prisma } from "./db";
 
-export async function getProgressStats() {
+export async function getProgressStats(userId: string) {
   const tasks = await prisma.task.findMany({
-    where: { completedAt: { not: null } },
+    where: { userId, completedAt: { not: null } },
     include: { tags: { include: { tag: true } } },
   });
 
@@ -79,8 +79,8 @@ export async function getProgressStats() {
   }
 
   const [totalTasksCount, completedTasksCount] = await Promise.all([
-    prisma.task.count(),
-    prisma.task.count({ where: { completedAt: { not: null } } }),
+    prisma.task.count({ where: { userId } }),
+    prisma.task.count({ where: { userId, completedAt: { not: null } } }),
   ]);
 
   return {

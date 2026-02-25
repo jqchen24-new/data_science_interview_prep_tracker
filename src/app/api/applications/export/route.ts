@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { getApplications } from "@/lib/applications";
 
 function escapeCsvField(value: string | null | undefined): string {
@@ -11,7 +12,11 @@ function escapeCsvField(value: string | null | undefined): string {
 }
 
 export async function GET() {
-  const applications = await getApplications({ sort: "applied" });
+  const session = await auth();
+  if (!session?.user?.id) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+  const applications = await getApplications(session.user.id, { sort: "applied" });
   const headers = [
     "Company",
     "Role",

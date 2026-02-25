@@ -1,28 +1,23 @@
 import { prisma } from "./db";
+import {
+  APPLICATION_STATUSES,
+  type ApplicationSort,
+  isValidStatus,
+} from "./application-constants";
 
-export const APPLICATION_STATUSES = [
-  "Applied",
-  "Phone Screen",
-  "On-site",
-  "Offer",
-  "Rejected",
-] as const;
+export { APPLICATION_STATUSES, isValidStatus };
+export type { ApplicationSort, ApplicationStatus } from "./application-constants";
 
-export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
-
-export function isValidStatus(s: string): s is ApplicationStatus {
-  return APPLICATION_STATUSES.includes(s as ApplicationStatus);
-}
-
-export type ApplicationSort = "applied" | "statusUpdated";
-
-export async function getApplications(filters?: {
-  status?: string;
-  sort?: ApplicationSort;
-}) {
+export async function getApplications(
+  userId: string,
+  filters?: {
+    status?: string;
+    sort?: ApplicationSort;
+  }
+) {
   const status = filters?.status?.trim();
   const validStatus = status && isValidStatus(status) ? status : undefined;
-  const where = validStatus ? { status: validStatus } : {};
+  const where = validStatus ? { userId, status: validStatus } : { userId };
   const sort = filters?.sort === "statusUpdated" ? "statusUpdated" : "applied";
   const orderBy =
     sort === "statusUpdated"
@@ -34,23 +29,27 @@ export async function getApplications(filters?: {
   });
 }
 
-export async function getApplicationById(id: string) {
-  return prisma.application.findUnique({
-    where: { id },
+export async function getApplicationById(userId: string, id: string) {
+  return prisma.application.findFirst({
+    where: { id, userId },
   });
 }
 
-export async function createApplication(data: {
-  company: string;
-  role: string;
-  status: string;
-  appliedAt: Date;
-  notes?: string | null;
-  jobUrl?: string | null;
-  nextStepOrDeadline?: string | null;
-}) {
+export async function createApplication(
+  userId: string,
+  data: {
+    company: string;
+    role: string;
+    status: string;
+    appliedAt: Date;
+    notes?: string | null;
+    jobUrl?: string | null;
+    nextStepOrDeadline?: string | null;
+  }
+) {
   return prisma.application.create({
     data: {
+      userId,
       company: data.company.trim(),
       role: data.role.trim(),
       status: data.status,
@@ -64,6 +63,7 @@ export async function createApplication(data: {
 }
 
 export async function updateApplication(
+  userId: string,
   id: string,
   data: {
     company?: string;
@@ -87,11 +87,11 @@ export async function updateApplication(
   if (data.nextStepOrDeadline !== undefined)
     clean.nextStepOrDeadline = data.nextStepOrDeadline?.trim() || null;
   return prisma.application.update({
-    where: { id },
+    where: { id, userId },
     data: clean,
   });
 }
 
-export async function deleteApplication(id: string) {
-  return prisma.application.delete({ where: { id } });
+export async function deleteApplication(userId: string, id: string) {
+  return prisma.application.delete({ where: { id, userId } });
 }

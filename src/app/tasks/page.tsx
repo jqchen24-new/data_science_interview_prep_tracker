@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { auth } from "@/lib/auth";
 import { getAllTags } from "@/lib/tags";
 import { getTasks } from "@/lib/tasks";
 import { TaskForm } from "@/components/tasks/TaskForm";
@@ -13,7 +14,11 @@ import { TasksPageClient } from "./TasksPageClient";
 export const dynamic = "force-dynamic";
 
 export default async function TasksPage() {
-  const [tags, allTasks] = await Promise.all([getAllTags(), getTasks()]);
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return null;
+
+  const [tags, allTasks] = await Promise.all([getAllTags(), getTasks(userId)]);
   const now = new Date();
   const upcoming = allTasks.filter(
     (t) => !t.completedAt && new Date(t.scheduledAt) >= now

@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { APPLICATION_STATUSES } from "@/lib/applications";
+import { APPLICATION_STATUSES } from "@/lib/application-constants";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { updateApplicationAction } from "./actions";

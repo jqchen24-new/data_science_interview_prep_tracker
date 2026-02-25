@@ -1,3 +1,4 @@
+import { auth } from "@/lib/auth";
 import { getProgressStats } from "@/lib/progress";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { ProgressStats } from "@/components/progress/ProgressStats";
@@ -6,7 +7,11 @@ import { ProgressChartSection } from "@/components/progress/ProgressChartSection
 export const dynamic = "force-dynamic";
 
 export default async function ProgressPage() {
-  const stats = await getProgressStats();
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return null;
+
+  const stats = await getProgressStats(userId);
 
   return (
     <div className="space-y-8">

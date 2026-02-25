@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 
 const links = [
   { href: "/dashboard", label: "Dashboard" },
@@ -19,6 +20,7 @@ function isActive(pathname: string, href: string) {
 
 export function Nav() {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
 
   return (
     <nav className="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
@@ -29,7 +31,7 @@ export function Nav() {
         >
           DS Prep
         </Link>
-        <div className="flex gap-4">
+        <div className="flex flex-1 gap-4">
           {links.map(({ href, label }) => {
             const active = isActive(pathname, href);
             return (
@@ -46,6 +48,31 @@ export function Nav() {
               </Link>
             );
           })}
+        </div>
+        <div className="flex items-center gap-3">
+          {status === "loading" ? (
+            <span className="text-sm text-neutral-400">...</span>
+          ) : session?.user ? (
+            <>
+              <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                {session.user.email ?? session.user.name ?? "Signed in"}
+              </span>
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: "/signin" })}
+                className="text-sm text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/signin"
+              className="text-sm font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+            >
+              Sign in
+            </Link>
+          )}
         </div>
       </div>
     </nav>

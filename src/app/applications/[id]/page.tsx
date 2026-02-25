@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { auth } from "@/lib/auth";
 import { getApplicationById } from "@/lib/applications";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -12,8 +13,12 @@ export default async function ApplicationEditPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return null;
+
   const { id } = await params;
-  const app = await getApplicationById(id);
+  const app = await getApplicationById(userId, id);
   if (!app) notFound();
 
   return (

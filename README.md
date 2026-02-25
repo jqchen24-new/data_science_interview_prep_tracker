@@ -35,7 +35,7 @@ No auth in v1 (single-user, local).
    cp .env.example .env
    ```
 
-   Default content: `DATABASE_URL="file:./dev.db"`. Prisma will create the SQLite file when you run migrations.
+   Use `DATABASE_URL="file:./node_modules/.db/dev.db"` so the dev server doesn’t recompile on every DB write. Run once: `mkdir -p node_modules/.db`. Then Prisma will create the SQLite file when you run migrations.
 
 3. **Database**
 
