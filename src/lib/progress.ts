@@ -6,18 +6,26 @@ export async function getProgressStats(userId: string) {
     include: { tags: { include: { tag: true } } },
   });
 
+  const UNTAGGED_ID = "__untagged__";
   let totalMinutes = 0;
   const byTagId = new Map<string, { name: string; slug: string; minutes: number; count: number }>();
 
   for (const task of tasks) {
     const mins = task.durationMinutes ?? 30;
     totalMinutes += mins;
-    for (const tt of task.tags) {
-      const t = tt.tag;
-      const cur = byTagId.get(t.id) ?? { name: t.name, slug: t.slug, minutes: 0, count: 0 };
+    if (task.tags.length === 0) {
+      const cur = byTagId.get(UNTAGGED_ID) ?? { name: "Untagged", slug: "untagged", minutes: 0, count: 0 };
       cur.minutes += mins;
       cur.count += 1;
-      byTagId.set(t.id, cur);
+      byTagId.set(UNTAGGED_ID, cur);
+    } else {
+      for (const tt of task.tags) {
+        const t = tt.tag;
+        const cur = byTagId.get(t.id) ?? { name: t.name, slug: t.slug, minutes: 0, count: 0 };
+        cur.minutes += mins;
+        cur.count += 1;
+        byTagId.set(t.id, cur);
+      }
     }
   }
 
