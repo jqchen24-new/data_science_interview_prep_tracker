@@ -57,6 +57,10 @@ export function DashboardTodayCard({ tasks }: { tasks: Task[] }) {
             const tagSlug = primaryTag?.slug ?? "other";
             const duration = task.durationMinutes ?? 30;
             const isCompleted = !!task.completedAt;
+            const iconLabel =
+              (primaryTag?.name?.trim().slice(0, 2).toUpperCase()) ||
+              (task.title?.trim().slice(0, 2).toUpperCase()) ||
+              "—";
 
             return (
               <li
@@ -66,7 +70,7 @@ export function DashboardTodayCard({ tasks }: { tasks: Task[] }) {
                 <div
                   className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-semibold text-white ${getTagColor(tagSlug)}`}
                 >
-                  {primaryTag?.name.slice(0, 2).toUpperCase() ?? "?"}
+                  {iconLabel}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-neutral-900 dark:text-white">
