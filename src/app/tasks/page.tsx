@@ -18,7 +18,7 @@ export default async function TasksPage() {
   const userId = session?.user?.id;
   if (!userId) return null;
 
-  const [tags, allTasks] = await Promise.all([getAllTags(), getTasks(userId)]);
+  const [tags, allTasks] = await Promise.all([getAllTags(userId), getTasks(userId)]);
   const now = new Date();
   const upcoming = allTasks.filter(
     (t) => !t.completedAt && new Date(t.scheduledAt) >= now

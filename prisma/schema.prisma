@@ -47,6 +47,7 @@ model User {
   sessions      Session[]
   tasks         Task[]
   applications  Application[]
+  tags          Tag[]
 }
 
 model VerificationToken {
@@ -58,10 +59,14 @@ model VerificationToken {
 }
 
 model Tag {
-  id    String   @id @default(cuid())
-  name  String
-  slug  String   @unique
-  tasks TaskTag[]
+  id     String   @id @default(cuid())
+  name   String
+  slug   String
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks  TaskTag[]
+
+  @@unique([userId, slug])
 }
 
 model Task {

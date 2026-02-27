@@ -123,7 +123,10 @@ export async function getSuggestedPlanForDate(
   userId: string,
   date: Date
 ): Promise<SuggestedItem[]> {
-  const tags = await prisma.tag.findMany({ orderBy: { name: "asc" } });
+  const tags = await prisma.tag.findMany({
+    where: { userId },
+    orderBy: { name: "asc" },
+  });
   const lookbackStart = new Date(date);
   lookbackStart.setDate(lookbackStart.getDate() - LOOKBACK_DAYS);
   lookbackStart.setHours(0, 0, 0, 0);

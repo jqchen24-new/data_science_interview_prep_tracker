@@ -11,14 +11,20 @@ const DEFAULT_TAGS = [
 ];
 
 async function main() {
+  const users = await prisma.user.findMany({ take: 1 });
+  if (users.length === 0) {
+    console.log("No users found; skipping tag seed. Sign up first, then run seed to add default tags for new users.");
+    return;
+  }
+  const userId = users[0].id;
   for (const tag of DEFAULT_TAGS) {
     await prisma.tag.upsert({
-      where: { slug: tag.slug },
+      where: { userId_slug: { userId, slug: tag.slug } },
       update: {},
-      create: tag,
+      create: { userId, ...tag },
     });
   }
-  console.log("Seeded 5 default tags.");
+  console.log("Seeded 5 default tags for first user.");
 }
 
 main()

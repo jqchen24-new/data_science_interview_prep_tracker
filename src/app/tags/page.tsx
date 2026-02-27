@@ -1,3 +1,4 @@
+import { auth } from "@/lib/auth";
 import { getAllTags } from "@/lib/tags";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { TagsPageClient } from "./TagsPageClient";
@@ -5,7 +6,11 @@ import { TagsPageClient } from "./TagsPageClient";
 export const dynamic = "force-dynamic";
 
 export default async function TagsPage() {
-  const tags = await getAllTags();
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return null;
+
+  const tags = await getAllTags(userId);
 
   return (
     <div className="space-y-8">
@@ -14,7 +19,7 @@ export default async function TagsPage() {
           Tags
         </h1>
         <p className="mt-1 text-neutral-600 dark:text-neutral-400">
-          Add, edit, or remove tags. Defaults (SQL, ML, Stats, Python, Behavioral) are created when you seed the database.
+          Add, edit, or remove tags. Each user has their own tags.
         </p>
       </div>
 

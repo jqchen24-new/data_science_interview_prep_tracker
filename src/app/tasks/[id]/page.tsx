@@ -18,7 +18,7 @@ export default async function TaskEditPage({
   if (!userId) return null;
 
   const { id } = await params;
-  const [task, tags] = await Promise.all([getTaskById(userId, id), getAllTags()]);
+  const [task, tags] = await Promise.all([getTaskById(userId, id), getAllTags(userId)]);
   if (!task) notFound();
 
   const scheduled = new Date(task.scheduledAt);
