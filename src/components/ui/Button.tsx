@@ -25,7 +25,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 ${variants[variant]} ${className}`}
+      className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900 ${variants[variant]} ${className}`}
       disabled={disabled}
       {...props}
     />

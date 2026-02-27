@@ -33,23 +33,28 @@ export function DashboardTodayCard({ tasks }: { tasks: Task[] }) {
     <Card>
       <CardTitle>Today</CardTitle>
       {sortedTasks.length === 0 ? (
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          No sessions today.{" "}
-          <Link
-            href="/plan"
-            className="text-neutral-700 underline dark:text-neutral-300"
-          >
-            Plan your day
-          </Link>{" "}
-          or{" "}
-          <Link
-            href="/tasks"
-            className="text-neutral-700 underline dark:text-neutral-300"
-          >
-            add a task
-          </Link>
-          .
-        </p>
+        <div className="rounded-lg border border-dashed border-neutral-200 bg-neutral-50/50 px-4 py-6 dark:border-neutral-700 dark:bg-neutral-800/30">
+          <p className="mb-1 text-center text-2xl text-neutral-400 dark:text-neutral-500" aria-hidden>
+            📅
+          </p>
+          <p className="text-center text-sm text-neutral-500 dark:text-neutral-400">
+            No sessions today.{" "}
+            <Link
+              href="/plan"
+              className="font-medium text-neutral-700 underline hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+            >
+              Plan your day
+            </Link>{" "}
+            or{" "}
+            <Link
+              href="/tasks"
+              className="font-medium text-neutral-700 underline hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+            >
+              add a task
+            </Link>
+            .
+          </p>
+        </div>
       ) : (
         <ul className="space-y-3">
           {sortedTasks.map((task) => {

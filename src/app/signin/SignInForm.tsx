@@ -25,7 +25,7 @@ export function SignInForm() {
       <button
         type="button"
         onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-        className="rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm hover:bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+        className="rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm hover:bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900"
       >
         Sign in with Google
       </button>
@@ -35,7 +35,7 @@ export function SignInForm() {
           <span className="w-full border-t border-neutral-200 dark:border-neutral-700" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="bg-white px-2 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+          <span className="bg-white px-2 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
             or
           </span>
         </div>
@@ -80,8 +80,14 @@ export function SignInForm() {
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200"
+          className="flex items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900"
         >
+          {loading && (
+            <span
+              className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white border-t-transparent dark:border-neutral-900 dark:border-t-transparent"
+              aria-hidden
+            />
+          )}
           {loading ? "Signing in…" : "Sign in with email"}
         </button>
       </form>

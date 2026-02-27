@@ -4,6 +4,7 @@ import { getAllTags } from "@/lib/tags";
 import { getTasks } from "@/lib/tasks";
 import { TaskForm } from "@/components/tasks/TaskForm";
 import { SuccessBanner } from "@/components/ui/SuccessBanner";
+import { LoadingFallback } from "@/components/ui/LoadingFallback";
 import {
   completeTaskAction,
   uncompleteTaskAction,
@@ -41,7 +42,7 @@ export default async function TasksPage() {
         </p>
       </div>
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<LoadingFallback />}>
         <SuccessBanner />
       </Suspense>
 

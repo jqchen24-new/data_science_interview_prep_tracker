@@ -5,6 +5,7 @@ import type { SuggestedItem } from "@/lib/tasks";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { SuggestedPlan } from "@/components/plan/SuggestedPlan";
 import { SuccessBanner } from "@/components/ui/SuccessBanner";
+import { LoadingFallback } from "@/components/ui/LoadingFallback";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
@@ -63,7 +64,7 @@ export default async function PlanPage() {
         </p>
       </div>
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<LoadingFallback />}>
         <SuccessBanner />
       </Suspense>
 

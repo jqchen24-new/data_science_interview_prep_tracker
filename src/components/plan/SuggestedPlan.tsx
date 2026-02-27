@@ -7,15 +7,20 @@ export function SuggestedPlan({ items = [] }: { items?: SuggestedItem[] }) {
   const list = Array.isArray(items) ? items : [];
   if (list.length === 0) {
     return (
-      <div className="space-y-2">
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+      <div className="rounded-lg border border-dashed border-neutral-200 bg-neutral-50/50 px-4 py-6 dark:border-neutral-700 dark:bg-neutral-800/30">
+        <p className="mb-1 text-center text-2xl text-neutral-400 dark:text-neutral-500" aria-hidden>
+          💡
+        </p>
+        <p className="mb-4 text-center text-sm text-neutral-500 dark:text-neutral-400">
           No suggestions right now. Add tags and complete some sessions to get suggestions.
         </p>
-        <Link href="/tags">
-          <Button type="button" variant="secondary" className="text-sm">
-            Go to Tags to add tags
-          </Button>
-        </Link>
+        <div className="flex justify-center">
+          <Link href="/tags">
+            <Button type="button" variant="secondary" className="text-sm">
+              Go to Tags to add tags
+            </Button>
+          </Link>
+        </div>
       </div>
     );
   }
