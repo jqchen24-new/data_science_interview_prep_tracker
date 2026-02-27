@@ -22,7 +22,13 @@ export async function setProfessionAction(formData: FormData): Promise<void> {
     where: { id: userId },
     data: { profession: professionId },
   });
-  await ensureDefaultTagsForUser(userId, professionId);
+
+  try {
+    await ensureDefaultTagsForUser(userId, professionId);
+  } catch (e) {
+    console.error("[onboarding] ensureDefaultTagsForUser failed:", e);
+    // Still redirect; user can add tags in Settings
+  }
 
   revalidatePath("/", "layout");
   redirect("/dashboard");

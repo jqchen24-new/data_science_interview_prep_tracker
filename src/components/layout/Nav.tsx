@@ -24,7 +24,8 @@ export function Nav() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const profession = resolveProfession(session?.user?.profession ?? null);
-  const brandLabel = getCopyForProfession(profession).navBrand;
+  const copy = getCopyForProfession(profession);
+  const brandLabel = copy?.navBrand ?? "The Offer Lab";
 
   return (
     <nav className="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">

@@ -22,10 +22,10 @@ export function OnboardingGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (status !== "authenticated") return;
-    if (!session?.user) return;
+    if (status !== "authenticated" || !session?.user) return;
     if (isAllowedWithoutProfession(pathname ?? "")) return;
-    if (session.user.profession != null && session.user.profession !== "") return;
+    const prof = session.user?.profession;
+    if (prof != null && prof !== "") return;
     if (isProtectedPath(pathname ?? "") || pathname === "/") {
       router.replace("/onboarding");
     }

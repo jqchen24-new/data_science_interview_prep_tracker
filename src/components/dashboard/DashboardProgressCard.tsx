@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   PieChart,
@@ -24,8 +25,8 @@ type Props = {
   lastWeekMinutes: number;
   totalMinutes: number;
   streak: number;
-  byTag: TagStat[];
-  weeklyData: WeekPoint[];
+  byTag?: TagStat[];
+  weeklyData?: WeekPoint[];
   completedTasksCount: number;
   totalTasksCount: number;
 };
@@ -35,11 +36,14 @@ export function DashboardProgressCard({
   lastWeekMinutes,
   totalMinutes,
   streak,
-  byTag,
-  weeklyData,
+  byTag = [],
+  weeklyData = [],
   completedTasksCount,
   totalTasksCount,
 }: Props) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const weekDiff = weekMinutes - lastWeekMinutes;
   const topTag = byTag[0];
   const pieData = byTag.slice(0, 5).map((t, i) => ({
@@ -74,7 +78,7 @@ export function DashboardProgressCard({
               </p>
             )}
           </div>
-          {pieData.length > 0 && (
+          {mounted && pieData.length > 0 && (
             <div className="flex flex-col gap-2">
               <div className="h-28 w-28 shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
@@ -124,7 +128,7 @@ export function DashboardProgressCard({
               All-time study time
             </p>
           </div>
-          {weeklyData.length > 0 && (
+          {mounted && weeklyData.length > 0 && (
             <div className="h-12 w-24 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={weeklyData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
