@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { resolveProfession, getCopyForProfession } from "@/lib/profession-config";
 
 const links = [
   { href: "/dashboard", label: "Dashboard" },
@@ -11,6 +12,7 @@ const links = [
   { href: "/applications", label: "Applications" },
   { href: "/progress", label: "Progress" },
   { href: "/tags", label: "Tags" },
+  { href: "/settings", label: "Settings" },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -21,6 +23,8 @@ function isActive(pathname: string, href: string) {
 export function Nav() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const profession = resolveProfession(session?.user?.profession ?? null);
+  const brandLabel = getCopyForProfession(profession).navBrand;
 
   return (
     <nav className="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
@@ -29,7 +33,7 @@ export function Nav() {
           href="/dashboard"
           className="font-semibold text-neutral-900 dark:text-white"
         >
-          DS Prep
+          {brandLabel}
         </Link>
         <div className="flex flex-1 gap-4">
           {links.map(({ href, label }) => {

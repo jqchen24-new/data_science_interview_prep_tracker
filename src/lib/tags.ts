@@ -1,3 +1,5 @@
+import type { ProfessionId } from "@/lib/profession-config";
+import { getDefaultTagsForProfession } from "@/lib/profession-config";
 import { prisma } from "./db";
 
 export async function getAllTags(userId: string) {
@@ -44,4 +46,22 @@ export async function deleteTag(userId: string, id: string) {
   if (!tag) throw new Error("Tag not found");
   await prisma.taskTag.deleteMany({ where: { tagId: id } });
   return prisma.tag.delete({ where: { id } });
+}
+
+/**
+ * Ensure the default tags for the given profession exist for the user (upsert by slug).
+ * Does not remove existing tags; only adds missing defaults.
+ */
+export async function ensureDefaultTagsForUser(
+  userId: string,
+  professionId: ProfessionId
+): Promise<void> {
+  const defaults = getDefaultTagsForProfession(professionId);
+  for (const { name, slug } of defaults) {
+    await prisma.tag.upsert({
+      where: { userId_slug: { userId, slug } },
+      update: {},
+      create: { userId, name, slug },
+    });
+  }
 }

@@ -43,6 +43,7 @@ model User {
   emailVerified DateTime?
   image         String?
   passwordHash  String?   // for email/password sign-in (null for Google-only users)
+  profession    String?   // e.g. data_science, software_engineering, product, design, other
   accounts      Account[]
   sessions      Session[]
   tasks         Task[]

@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { auth } from "@/lib/auth";
+import { resolveProfession, getCopyForProfession } from "@/lib/profession-config";
 import { Nav } from "@/components/layout/Nav";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import { OnboardingGate } from "@/components/OnboardingGate";
 
-export const metadata: Metadata = {
-  title: "DS Interview Prep Tracker",
-  description: "Track study sessions and daily prep for data science interviews",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const session = await auth();
+  const profession = resolveProfession(session?.user?.profession ?? null);
+  const copy = getCopyForProfession(profession);
+  return {
+    title: `Prep Tracker – ${copy.titleSuffix}`,
+    description: copy.description,
+  };
+}
 
 export default function RootLayout({
   children,
@@ -18,8 +26,10 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen antialiased">
         <SessionProvider>
-          <Nav />
-          <PageContainer>{children}</PageContainer>
+          <OnboardingGate>
+            <Nav />
+            <PageContainer>{children}</PageContainer>
+          </OnboardingGate>
         </SessionProvider>
       </body>
     </html>

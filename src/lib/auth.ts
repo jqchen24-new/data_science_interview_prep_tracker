@@ -47,9 +47,14 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
-    session({ session, token }) {
+    async session({ session, token }) {
       if (session.user) {
         session.user.id = (token.id ?? token.sub) as string;
+        const dbUser = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { profession: true },
+        });
+        session.user.profession = dbUser?.profession ?? null;
       }
       return session;
     },

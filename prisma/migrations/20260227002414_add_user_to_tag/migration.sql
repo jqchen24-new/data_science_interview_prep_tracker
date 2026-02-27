@@ -1,22 +1,22 @@
--- Add userId to Tag (PostgreSQL)
--- Backfill existing tags to the first user, then enforce NOT NULL and FK.
+/*
+  Warnings:
 
-ALTER TABLE "Tag" ADD COLUMN IF NOT EXISTS "userId" TEXT;
+  - Added the required column `userId` to the `Tag` table without a default value. This is not possible if the table is not empty.
 
-UPDATE "Tag" SET "userId" = (SELECT "id" FROM "User" LIMIT 1) WHERE "userId" IS NULL;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM "Tag" WHERE "userId" IS NULL) THEN
-    ALTER TABLE "Tag" ALTER COLUMN "userId" SET NOT NULL;
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  ALTER TABLE "Tag" ADD CONSTRAINT "Tag_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
-END $$;
-
-DROP INDEX IF EXISTS "Tag_slug_key";
-CREATE UNIQUE INDEX IF NOT EXISTS "Tag_userId_slug_key" ON "Tag"("userId", "slug");
+*/
+-- RedefineTables
+PRAGMA defer_foreign_keys=ON;
+PRAGMA foreign_keys=OFF;
+CREATE TABLE "new_Tag" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    CONSTRAINT "Tag_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+INSERT INTO "new_Tag" ("id", "name", "slug", "userId") SELECT "id", "name", "slug", (SELECT "id" FROM "User" LIMIT 1) FROM "Tag";
+DROP TABLE "Tag";
+ALTER TABLE "new_Tag" RENAME TO "Tag";
+CREATE UNIQUE INDEX "Tag_userId_slug_key" ON "Tag"("userId", "slug");
+PRAGMA foreign_keys=ON;
+PRAGMA defer_foreign_keys=OFF;
