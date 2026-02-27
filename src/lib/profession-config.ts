@@ -64,27 +64,27 @@ const COPY_BY_PROFESSION: Record<ProfessionId, ProfessionCopy> = {
   data_science: {
     titleSuffix: "Data Science",
     description: "Track study sessions and prep for data science interviews",
-    navBrand: "DS Prep",
+    navBrand: "The Offer Lab",
   },
   software_engineering: {
     titleSuffix: "Software Engineering",
     description: "Track study sessions and prep for software engineering interviews",
-    navBrand: "SWE Prep",
+    navBrand: "The Offer Lab",
   },
   product: {
     titleSuffix: "Product",
     description: "Track study sessions and prep for product interviews",
-    navBrand: "Product Prep",
+    navBrand: "The Offer Lab",
   },
   design: {
     titleSuffix: "Design",
     description: "Track study sessions and prep for design interviews",
-    navBrand: "Design Prep",
+    navBrand: "The Offer Lab",
   },
   other: {
     titleSuffix: "Interview Prep",
     description: "Track study sessions and interview prep",
-    navBrand: "Prep Tracker",
+    navBrand: "The Offer Lab",
   },
 };
 

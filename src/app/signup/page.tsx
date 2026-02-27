@@ -12,7 +12,7 @@ export default async function SignUpPage() {
         Create an account
       </h1>
       <p className="text-center text-neutral-600 dark:text-neutral-400">
-        Sign up with email to use the study tracker without Google.
+        Sign up with email to use The Offer Lab without Google.
       </p>
       <SignUpForm />
     </div>

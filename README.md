@@ -1,4 +1,4 @@
-# Interview Prep Tracker
+# The Offer Lab
 
 Minimal web app to track study sessions, daily plans, and progress for interview prep. Built with Next.js (App Router), TypeScript, Tailwind, Prisma, and SQLite.
 
