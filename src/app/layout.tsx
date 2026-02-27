@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { resolveProfession, getCopyForProfession } from "@/lib/profession-config";
 import { Nav } from "@/components/layout/Nav";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Footer } from "@/components/layout/Footer";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { OnboardingGate } from "@/components/OnboardingGate";
 
@@ -28,7 +29,10 @@ export default function RootLayout({
         <SessionProvider>
           <OnboardingGate>
             <Nav />
-            <PageContainer>{children}</PageContainer>
+            <div className="flex min-h-screen flex-col">
+              <PageContainer className="flex-1">{children}</PageContainer>
+              <Footer />
+            </div>
           </OnboardingGate>
         </SessionProvider>
       </body>
