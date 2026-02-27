@@ -30,7 +30,10 @@ export default async function SignInPage({
       <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
         Sign in to The Offer Lab
       </h1>
-      <p className="text-center text-neutral-600 dark:text-neutral-400">
+      <p className="max-w-md text-center text-sm text-neutral-600 dark:text-neutral-400">
+        Track study sessions, plan your day, and manage job applications—all in one place for interview prep.
+      </p>
+      <p className="text-center text-sm text-neutral-500 dark:text-neutral-400">
         Use Google or your email and password.
       </p>
       {justRegistered && (
