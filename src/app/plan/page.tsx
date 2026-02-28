@@ -1,37 +1,24 @@
 import { Suspense } from "react";
 import { auth } from "@/lib/auth";
-import { getTasksForDate, getSuggestedPlanForDate } from "@/lib/tasks";
+import { getSuggestedPlanForDate } from "@/lib/tasks";
 import type { SuggestedItem } from "@/lib/tasks";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { SuggestedPlan } from "@/components/plan/SuggestedPlan";
+import { PlanTodayList } from "@/components/plan/PlanTodayList";
 import { SuccessBanner } from "@/components/ui/SuccessBanner";
 import { LoadingFallback } from "@/components/ui/LoadingFallback";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import Link from "next/link";
-import {
-  completeTaskFormAction,
-  uncompleteTaskFormAction,
-  deleteTaskFormAction,
-} from "./actions";
 
 export const dynamic = "force-dynamic";
-
-type TaskWithTags = Awaited<ReturnType<typeof getTasksForDate>>[number];
 
 async function loadPlanData(userId: string) {
   const today = new Date();
   try {
-    const [todayTasks, suggested] = await Promise.all([
-      getTasksForDate(userId, today),
-      getSuggestedPlanForDate(userId, today),
-    ]);
-    return { todayTasks, suggested, error: null as string | null };
+    const suggested = await getSuggestedPlanForDate(userId, today);
+    return { suggested, error: null as string | null };
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("Plan data error:", e);
     return {
-      todayTasks: [] as TaskWithTags[],
       suggested: [] as SuggestedItem[],
       error: message,
     };
@@ -43,15 +30,7 @@ export default async function PlanPage() {
   const userId = session?.user?.id;
   if (!userId) return null;
 
-  const { todayTasks, suggested, error } = await loadPlanData(userId);
-
-  // Exclude from suggestions any tag already in today's plan
-  const tagIdsInTodaysPlan = new Set(
-    (todayTasks ?? []).flatMap((t) => t.tags.map((tt) => tt.tagId))
-  );
-  const suggestedFiltered = (suggested ?? []).filter(
-    (item) => !tagIdsInTodaysPlan.has(item.tagId)
-  );
+  const { suggested, error } = await loadPlanData(userId);
 
   return (
     <div className="space-y-8">
@@ -94,82 +73,12 @@ export default async function PlanPage() {
         <p className="mb-2 text-sm text-neutral-500 dark:text-neutral-400">
           Based on tags you haven’t practiced recently, then by least total time.
         </p>
-        <SuggestedPlan items={suggestedFiltered} />
+        <SuggestedPlan items={suggested ?? []} />
       </Card>
 
       <Card>
         <CardTitle>Today’s plan</CardTitle>
-        {!todayTasks || todayTasks.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-neutral-300 py-6 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-            Nothing scheduled for today. Add from suggestions above or from Tasks.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {todayTasks.map((task) => {
-              const completed = !!task.completedAt;
-              const scheduled = new Date(task.scheduledAt);
-              const timeStr = Number.isNaN(scheduled.getTime())
-                ? "–"
-                : scheduled.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-              const tags = Array.isArray(task.tags) ? task.tags : [];
-              return (
-                <div
-                  key={task.id}
-                  className={`flex items-center justify-between gap-4 rounded-lg border px-4 py-3 ${
-                    completed
-                      ? "border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900/50"
-                      : "border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900"
-                  }`}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className={`font-medium ${completed ? "line-through opacity-70" : ""}`}>
-                      {task.title}
-                    </p>
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                      {timeStr}
-                      {task.durationMinutes != null && ` · ${task.durationMinutes} min`}
-                    </p>
-                    {tags.length > 0 && (
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {tags.map((tt) => (
-                          <Badge key={tt.tag?.id ?? tt.tagId}>{tt.tag?.name ?? "?"}</Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex shrink-0 gap-1">
-                    {completed ? (
-                      <form action={uncompleteTaskFormAction}>
-                        <input type="hidden" name="taskId" value={task.id} />
-                        <Button type="submit" variant="ghost">
-                          Undo
-                        </Button>
-                      </form>
-                    ) : (
-                      <form action={completeTaskFormAction}>
-                        <input type="hidden" name="taskId" value={task.id} />
-                        <Button type="submit" variant="secondary">
-                          Done
-                        </Button>
-                      </form>
-                    )}
-                    <Link href={`/tasks/${task.id}`}>
-                      <Button type="button" variant="ghost">
-                        Edit
-                      </Button>
-                    </Link>
-                    <form action={deleteTaskFormAction} className="inline">
-                      <input type="hidden" name="taskId" value={task.id} />
-                      <Button type="submit" variant="ghost">
-                        Delete
-                      </Button>
-                    </form>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <PlanTodayList />
       </Card>
     </div>
   );

@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { createTask, completeTask, uncompleteTask, deleteTask } from "@/lib/tasks";
+import { createTask, completeTask, uncompleteTask, deleteTask, getTasks } from "@/lib/tasks";
+
+export type PlanTodayTask = Awaited<ReturnType<typeof getTasks>>[number];
 
 export async function addSuggestedToTodayAction(formData: FormData): Promise<void> {
   const session = await auth();
@@ -36,6 +38,16 @@ export async function addSuggestedToTodayAction(formData: FormData): Promise<voi
   revalidatePath("/tasks");
   revalidatePath("/progress");
   redirect("/plan?success=added");
+}
+
+/** Fetch tasks scheduled for the given date (YYYY-MM-DD, interpreted as UTC day). */
+export async function getPlanTodayTasksAction(dateStr: string): Promise<PlanTodayTask[]> {
+  const session = await auth();
+  if (!session?.user?.id) return [];
+  if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return [];
+  const start = new Date(`${dateStr}T00:00:00.000Z`);
+  const end = new Date(`${dateStr}T23:59:59.999Z`);
+  return getTasks(session.user.id, { from: start, to: end });
 }
 
 export async function completeTaskFormAction(formData: FormData): Promise<void> {
