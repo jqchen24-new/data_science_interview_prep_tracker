@@ -5,6 +5,7 @@ import { setProfessionAction } from "./actions";
 import { Button } from "@/components/ui/Button";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Onboarding" };
 
 export default async function OnboardingPage({
   searchParams,

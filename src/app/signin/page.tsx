@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { SignInForm } from "./SignInForm";
 
+export const metadata = { title: "Sign In" };
+
 const ERROR_MESSAGES: Record<string, string> = {
   Configuration: "There is a problem with the server configuration (missing or wrong env).",
   AccessDenied: "Access denied (e.g. you were not allowed to sign in).",

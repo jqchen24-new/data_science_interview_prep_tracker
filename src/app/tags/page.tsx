@@ -4,6 +4,7 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { TagsPageClient } from "./TagsPageClient";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Tags" };
 
 export default async function TagsPage() {
   const session = await auth();

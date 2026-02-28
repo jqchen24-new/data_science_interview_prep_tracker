@@ -5,6 +5,7 @@ import { DashboardTodayCardClient } from "@/components/dashboard/DashboardTodayC
 import { DashboardProgressCard } from "@/components/dashboard/DashboardProgressCard";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const session = await auth();

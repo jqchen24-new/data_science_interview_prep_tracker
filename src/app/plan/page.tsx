@@ -9,6 +9,7 @@ import { SuccessBanner } from "@/components/ui/SuccessBanner";
 import { LoadingFallback } from "@/components/ui/LoadingFallback";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Daily Plan" };
 
 async function loadPlanData(userId: string) {
   const today = new Date();

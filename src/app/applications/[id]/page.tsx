@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { ApplicationEditForm } from "../ApplicationEditForm";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Edit Application" };
 
 export default async function ApplicationEditPage({
   params,

@@ -14,7 +14,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const profession = resolveProfession(session?.user?.profession ?? null);
   const copy = getCopyForProfession(profession);
   return {
-    title: `The Offer Lab – ${copy.titleSuffix}`,
+    title: {
+      default: "The Offer Lab",
+      template: "The Offer Lab - %s",
+    },
     description: copy.description,
   };
 }

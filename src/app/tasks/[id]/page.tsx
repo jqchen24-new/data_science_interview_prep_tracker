@@ -7,6 +7,7 @@ import { EditTaskForm } from "@/components/tasks/EditTaskForm";
 import { Button } from "@/components/ui/Button";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Edit Task" };
 
 export default async function TaskEditPage({
   params,

@@ -13,6 +13,7 @@ import {
 import { TasksPageClient } from "./TasksPageClient";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Tasks" };
 
 export default async function TasksPage() {
   const session = await auth();

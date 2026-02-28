@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { SettingsForm } from "./SettingsForm";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
   const session = await auth();

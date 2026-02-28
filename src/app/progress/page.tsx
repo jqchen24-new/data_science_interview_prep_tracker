@@ -5,6 +5,7 @@ import { ProgressStats } from "@/components/progress/ProgressStats";
 import { ProgressChartSection } from "@/components/progress/ProgressChartSection";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Progress" };
 
 export default async function ProgressPage() {
   const session = await auth();

@@ -11,6 +11,7 @@ import { ApplicationsList } from "./ApplicationsList";
 import { ApplicationsFilter } from "./ApplicationsFilter";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Applications" };
 
 export default async function ApplicationsPage({
   searchParams,
