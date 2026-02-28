@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { getTasksForTodayDashboard } from "@/lib/tasks";
 import { getProgressStats } from "@/lib/progress";
-import { DashboardTodayCard } from "@/components/dashboard/DashboardTodayCard";
+import { DashboardTodayCardClient } from "@/components/dashboard/DashboardTodayCardClient";
 import { DashboardProgressCard } from "@/components/dashboard/DashboardProgressCard";
 
 export const dynamic = "force-dynamic";
@@ -81,7 +80,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <DashboardTodayCard tasks={todayTasks} />
+        <DashboardTodayCardClient />
         <DashboardProgressCard
           weekMinutes={stats.weekMinutes}
           lastWeekMinutes={stats.lastWeekMinutes}

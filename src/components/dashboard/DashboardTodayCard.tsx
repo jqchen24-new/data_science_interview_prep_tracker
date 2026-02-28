@@ -18,7 +18,7 @@ type Task = {
   id: string;
   title: string;
   durationMinutes: number | null;
-  completedAt: Date | null;
+  completedAt: Date | string | null;
   tags: { tag: { id: string; name: string; slug: string } }[];
 };
 

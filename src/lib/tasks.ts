@@ -40,13 +40,22 @@ export async function getTasksForDate(userId: string, date: Date) {
   return getTasks(userId, { from: start, to: end });
 }
 
-/** Tasks to show in dashboard "Today": scheduled for today OR completed today. */
+/** Tasks to show in dashboard "Today": scheduled for today OR completed today (server date). */
 export async function getTasksForTodayDashboard(userId: string) {
   const date = new Date();
   const start = new Date(date);
   start.setHours(0, 0, 0, 0);
   const end = new Date(date);
   end.setHours(23, 59, 59, 999);
+  return getTasksForTodayDashboardWithRange(userId, start, end);
+}
+
+/** Same as above but with explicit UTC range (use for client's local "today"). */
+export async function getTasksForTodayDashboardWithRange(
+  userId: string,
+  start: Date,
+  end: Date
+) {
   return prisma.task.findMany({
     where: {
       userId,
