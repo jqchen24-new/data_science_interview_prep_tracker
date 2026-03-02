@@ -297,7 +297,30 @@ export function SqlPracticeEditor({
         setLoading(false);
         return;
       }
-      const { passed, message } = compareSqlResult(actualRows, expectedResult);
+      const actualForCompare =
+        actualRows.length > 0 &&
+        Array.isArray(expectedResult) &&
+        expectedResult.length > 0 &&
+        typeof expectedResult[0] === "object" &&
+        expectedResult[0] !== null
+          ? (() => {
+              const firstActual = actualRows[0];
+              const actualKeys = Object.keys(firstActual);
+              const expectedKeys = Object.keys(expectedResult[0] as Record<string, unknown>);
+              const isGeneric = actualKeys.every((k, i) => k === `Column ${i + 1}`);
+              if (isGeneric && expectedKeys.length === actualKeys.length) {
+                return actualRows.map((row) => {
+                  const out: Record<string, unknown> = {};
+                  expectedKeys.forEach((ek, i) => {
+                    out[ek] = (row as Record<string, unknown>)[`Column ${i + 1}`];
+                  });
+                  return out;
+                });
+              }
+              return actualRows;
+            })()
+          : actualRows;
+      const { passed, message } = compareSqlResult(actualForCompare, expectedResult);
       const runResultPayload =
         actualRows.length > 0
           ? (JSON.parse(JSON.stringify(actualRows)) as Record<string, unknown>[])
