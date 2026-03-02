@@ -281,7 +281,12 @@ export function SqlPracticeEditor({
         db.exec(seedSql);
         const execResult = db.exec(code);
         if (Array.isArray(execResult) && execResult.length > 0) {
-          const resultSet = execResult[execResult.length - 1];
+          const resultSet =
+            execResult.find((r) => {
+              const vals = r?.values;
+              const cols = normalizeColumnNames(r?.columns);
+              return Array.isArray(vals) && vals.length > 0 && cols.length > 0;
+            }) ?? execResult[execResult.length - 1] ?? execResult[0];
           const columns = normalizeColumnNames(resultSet?.columns);
           const values = Array.isArray(resultSet?.values) ? resultSet.values : [];
           const rowValues = Array.isArray(values) ? values : [];
@@ -776,6 +781,57 @@ export function SqlPracticeEditor({
                       </p>
                     )}
                   </div>
+                  {submitState && !submitState.passed && expectedResult.length > 0 && (() => {
+                    const first = expectedResult[0];
+                    const expKeys =
+                      first !== null && typeof first === "object" ? Object.keys(first) : [];
+                    if (expKeys.length === 0) return null;
+                    return (
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                          Expected
+                        </p>
+                        <div className="max-h-[200px] overflow-auto rounded border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
+                          <table className="w-full min-w-[200px] table-auto border-collapse text-left text-sm">
+                            <thead className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-800">
+                              <tr className="border-b border-neutral-200 dark:border-neutral-700">
+                                {expKeys.map((col) => (
+                                  <th
+                                    key={col}
+                                    className="border-b border-neutral-200 px-3 py-2 font-medium text-neutral-700 dark:border-neutral-700 dark:text-neutral-300"
+                                  >
+                                    {col}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {expectedResult.map((row, i) => (
+                                <tr
+                                  key={i}
+                                  className="border-b border-neutral-100 dark:border-neutral-800"
+                                >
+                                  {expKeys.map((k) => {
+                                    const val = row !== null && typeof row === "object" && k in row
+                                      ? (row as Record<string, unknown>)[k]
+                                      : null;
+                                    return (
+                                      <td
+                                        key={k}
+                                        className="border-b border-neutral-100 px-3 py-2 font-mono text-neutral-700 dark:border-neutral-800 dark:text-neutral-300"
+                                      >
+                                        {val === null || val === undefined ? "\u00a0" : String(val)}
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   </>
                 )}
                 {submitState?.attemptId && (

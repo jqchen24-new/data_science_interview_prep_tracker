@@ -39,14 +39,27 @@ export async function getSqlAttemptPassedByQuestion(userId: string) {
  * Normalize rows for comparison: sort keys and stringify so order of columns
  * and row order don't matter. Returns a sorted array of canonical row strings.
  */
+function coerceValue(v: unknown): string | number | null {
+  if (v === null || v === undefined) return null;
+  if (typeof v === "number") return v;
+  if (typeof v === "string") {
+    const trimmed = v.trim();
+    if (trimmed === "") return trimmed;
+    const n = Number(trimmed);
+    if (!Number.isNaN(n) && String(n) === trimmed) return n;
+    return trimmed.toLowerCase();
+  }
+  return String(v).toLowerCase();
+}
+
 function normalizeRows(rows: Record<string, unknown>[]): string[] {
   if (!Array.isArray(rows)) return [];
   return rows
     .map((row) => {
       if (row === null || typeof row !== "object") return "{}";
-      const sorted: Record<string, unknown> = {};
+      const sorted: Record<string, string | number | null> = {};
       for (const k of Object.keys(row).sort()) {
-        sorted[k] = row[k];
+        sorted[k.toLowerCase()] = coerceValue(row[k]);
       }
       return JSON.stringify(sorted);
     })

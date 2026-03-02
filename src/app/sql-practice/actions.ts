@@ -50,7 +50,7 @@ export async function requestSqlFeedbackAction(
   }
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return { ok: false, error: "AI feedback is not configured" };
+    return { ok: false, error: "AI feedback requires an OpenAI API key. Add OPENAI_API_KEY to your .env file to enable this feature." };
   }
   const attempt = await prisma.sqlAttempt.findFirst({
     where: { id: attemptId, userId: session.user.id },
