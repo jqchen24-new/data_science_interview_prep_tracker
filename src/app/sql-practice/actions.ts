@@ -41,6 +41,53 @@ export type RequestFeedbackResult =
   | { ok: true; feedback: string }
   | { ok: false; error: string };
 
+async function callGemini(prompt: string, apiKey: string): Promise<string> {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+      }),
+    }
+  );
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Gemini error: ${res.status} ${err.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "No feedback generated.";
+}
+
+async function callOpenAI(prompt: string, apiKey: string): Promise<string> {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 400,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`OpenAI error: ${res.status} ${err.slice(0, 200)}`);
+  }
+  const data = (await res.json()) as {
+    choices?: { message?: { content?: string } }[];
+  };
+  return data.choices?.[0]?.message?.content?.trim() ?? "No feedback generated.";
+}
+
 export async function requestSqlFeedbackAction(
   attemptId: string
 ): Promise<RequestFeedbackResult> {
@@ -48,9 +95,13 @@ export async function requestSqlFeedbackAction(
   if (!session?.user?.id) {
     return { ok: false, error: "Not signed in" };
   }
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return { ok: false, error: "AI feedback requires an OpenAI API key. Add OPENAI_API_KEY to your .env file to enable this feature." };
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+  if (!geminiKey && !openaiKey) {
+    return {
+      ok: false,
+      error: "AI feedback requires an API key. Add GEMINI_API_KEY (free) or OPENAI_API_KEY to your .env file.",
+    };
   }
   const attempt = await prisma.sqlAttempt.findFirst({
     where: { id: attemptId, userId: session.user.id },
@@ -74,27 +125,9 @@ ${attempt.submittedSql}
 Provide 2-4 short sentences on: correctness (if wrong, what might be off), style (readability, naming), and efficiency (indexes, approach) where relevant. Be encouraging but specific.`;
 
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 400,
-      }),
-    });
-    if (!res.ok) {
-      const err = await res.text();
-      return { ok: false, error: `OpenAI error: ${res.status} ${err.slice(0, 100)}` };
-    }
-    const data = (await res.json()) as {
-      choices?: { message?: { content?: string } }[];
-    };
-    const feedback =
-      data.choices?.[0]?.message?.content?.trim() ?? "No feedback generated.";
+    const feedback = geminiKey
+      ? await callGemini(prompt, geminiKey)
+      : await callOpenAI(prompt, openaiKey!);
     await prisma.sqlAttempt.update({
       where: { id: attemptId },
       data: { aiFeedback: feedback },
