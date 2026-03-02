@@ -25,6 +25,25 @@ export async function getSqlQuestionIdsBySlug() {
   return new Map(rows.map((r) => [r.slug, r.id]));
 }
 
+/** Get all submissions for a question by a user, newest first. */
+export async function getSubmissionsForQuestion(userId: string, questionId: string) {
+  const attempts = await prisma.sqlAttempt.findMany({
+    where: { userId, questionId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      submittedSql: true,
+      passed: true,
+      aiFeedback: true,
+      createdAt: true,
+    },
+  });
+  return attempts.map((a) => ({
+    ...a,
+    createdAt: a.createdAt.toISOString(),
+  }));
+}
+
 /** Get passed attempt counts per question for a user (for "solved" badges). */
 export async function getSqlAttemptPassedByQuestion(userId: string) {
   const passed = await prisma.sqlAttempt.findMany({

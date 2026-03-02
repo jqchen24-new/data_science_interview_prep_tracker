@@ -61,6 +61,14 @@ function normalizeRowValues(row: unknown): unknown[] {
   return [];
 }
 
+type Submission = {
+  id: string;
+  submittedSql: string;
+  passed: boolean;
+  aiFeedback: string | null;
+  createdAt: string;
+};
+
 type SqlPracticeEditorProps = {
   questionId: string;
   title: string;
@@ -69,9 +77,10 @@ type SqlPracticeEditorProps = {
   schemaSql: string;
   seedSql: string;
   expectedResult: Record<string, unknown>[];
+  submissions?: Submission[];
 };
 
-const LEFT_TABS = ["Description", "Accepted", "Editorial", "Solutions", "Submissions"] as const;
+const LEFT_TABS = ["Description", "Submissions"] as const;
 type LeftTab = (typeof LEFT_TABS)[number];
 
 type ResultTab = "testcase" | "result";
@@ -84,9 +93,11 @@ export function SqlPracticeEditor({
   schemaSql,
   seedSql,
   expectedResult,
+  submissions: initialSubmissions = [],
 }: SqlPracticeEditorProps) {
   const [code, setCode] = useState("-- Write your SQL here\nSELECT 1;");
   const [leftTab, setLeftTab] = useState<LeftTab>("Description");
+  const [submissions, setSubmissions] = useState<Submission[]>(initialSubmissions);
   const [resultTab, setResultTab] = useState<ResultTab>("testcase");
   const [runOutput, setRunOutput] = useState<{
     type: "result" | "error";
@@ -364,6 +375,16 @@ export function SqlPracticeEditor({
           message,
           attemptId: res.attemptId,
         });
+        setSubmissions((prev) => [
+          {
+            id: res.attemptId,
+            submittedSql: code,
+            passed,
+            aiFeedback: null,
+            createdAt: new Date().toISOString(),
+          },
+          ...prev,
+        ]);
       }
       setRunOutput({ type: "result", rows: actualForCompare });
     } catch (e) {
@@ -534,10 +555,57 @@ export function SqlPracticeEditor({
               )}
             </div>
           )}
-          {leftTab !== "Description" && (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              Coming soon.
-            </p>
+          {leftTab === "Submissions" && (
+            <div className="space-y-3">
+              {submissions.length === 0 ? (
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                  No submissions yet. Write a query and hit Submit.
+                </p>
+              ) : (
+                submissions.map((sub) => (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    className="w-full rounded-lg border border-neutral-200 bg-white p-3 text-left transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-750"
+                    onClick={() => {
+                      setCode(sub.submittedSql);
+                      setLeftTab("Description");
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={`text-sm font-semibold ${
+                          sub.passed
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-red-600 dark:text-red-400"
+                        }`}
+                      >
+                        {sub.passed ? "Accepted" : "Wrong Answer"}
+                      </span>
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                        {new Date(sub.createdAt).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                    <pre className="mt-2 max-h-[80px] overflow-hidden text-ellipsis whitespace-pre-wrap font-mono text-xs text-neutral-600 dark:text-neutral-400">
+                      {sub.submittedSql}
+                    </pre>
+                    {sub.aiFeedback && (
+                      <p className="mt-2 border-t border-neutral-100 pt-2 text-xs text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+                        <span className="font-medium text-neutral-700 dark:text-neutral-300">AI: </span>
+                        {sub.aiFeedback.slice(0, 150)}
+                        {sub.aiFeedback.length > 150 ? "…" : ""}
+                      </p>
+                    )}
+                  </button>
+                ))
+              )}
+            </div>
           )}
         </div>
       </div>
