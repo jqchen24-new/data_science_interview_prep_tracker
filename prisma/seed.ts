@@ -18,6 +18,8 @@ async function main() {
 
 Return the salary that is strictly second when distinct salaries are ordered descending (e.g. 200, 200, 100 → second is **100**).
 
+---
+
 **Input:**
 
 | employees | |
@@ -36,6 +38,8 @@ Return the salary that is strictly second when distinct salaries are ordered des
       problemStatement: `Write a query to find employees who have the **highest salary in each department**.
 
 Return \`department_name\`, \`employee_name\`, and \`salary\`.
+
+---
 
 **Input:**
 
@@ -65,6 +69,8 @@ INSERT INTO employee (id, name, salary, departmentId) VALUES (1, 'Joe', 70000, 1
       difficulty: "easy",
       order: 3,
       problemStatement: `Write a query to find all **duplicate** emails. Return each duplicate email once.
+
+---
 
 **Input:**
 
