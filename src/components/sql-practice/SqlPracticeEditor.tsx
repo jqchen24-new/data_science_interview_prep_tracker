@@ -475,6 +475,9 @@ export function SqlPracticeEditor({
                     tr: ({ children }) => (
                       <tr className="last:border-0">{children}</tr>
                     ),
+                    hr: () => (
+                      <hr className="my-6 border-neutral-200 dark:border-neutral-700" />
+                    ),
                   }}
                 >
                   {problemStatement}
