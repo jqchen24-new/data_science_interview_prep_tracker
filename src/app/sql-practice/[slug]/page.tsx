@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { getSqlQuestionBySlug, getSubmissionsForQuestion } from "@/lib/sql-practice";
+import { getSqlQuestionBySlug, getSubmissionsForQuestion, getNextQuestionSlug } from "@/lib/sql-practice";
 import { Button } from "@/components/ui/Button";
 import { SqlPracticeEditor } from "@/components/sql-practice/SqlPracticeEditor";
 
@@ -34,7 +34,10 @@ export default async function SqlQuestionPage({ params }: PageProps) {
   const question = await getSqlQuestionBySlug(slug);
   if (!question) notFound();
 
-  const submissions = await getSubmissionsForQuestion(session.user.id, question.id);
+  const [submissions, nextSlug] = await Promise.all([
+    getSubmissionsForQuestion(session.user.id, question.id),
+    getNextQuestionSlug(question.order),
+  ]);
 
   return (
     <div className="relative left-1/2 right-1/2 flex min-h-[calc(100vh-3.5rem)] w-screen min-w-0 -ml-[50vw] -mr-[50vw]">
@@ -47,6 +50,7 @@ export default async function SqlQuestionPage({ params }: PageProps) {
         seedSql={question.seedSql}
         expectedResult={(Array.isArray(question.expectedResult) ? question.expectedResult : []) as Record<string, unknown>[]}
         submissions={submissions}
+        nextSlug={nextSlug}
       />
     </div>
   );

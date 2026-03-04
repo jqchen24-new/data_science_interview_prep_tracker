@@ -18,6 +18,15 @@ export async function getSqlQuestionBySlug(slug: string) {
   });
 }
 
+export async function getNextQuestionSlug(currentOrder: number): Promise<string | null> {
+  const next = await prisma.sqlQuestion.findFirst({
+    where: { order: { gt: currentOrder } },
+    orderBy: { order: "asc" },
+    select: { slug: true },
+  });
+  return next?.slug ?? null;
+}
+
 export async function getSqlQuestionIdsBySlug() {
   const rows = await prisma.sqlQuestion.findMany({
     select: { slug: true, id: true },

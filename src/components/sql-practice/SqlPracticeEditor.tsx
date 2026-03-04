@@ -78,6 +78,7 @@ type SqlPracticeEditorProps = {
   seedSql: string;
   expectedResult: Record<string, unknown>[];
   submissions?: Submission[];
+  nextSlug?: string | null;
 };
 
 const LEFT_TABS = ["Description", "Submissions"] as const;
@@ -124,6 +125,7 @@ export function SqlPracticeEditor({
   seedSql,
   expectedResult,
   submissions: initialSubmissions = [],
+  nextSlug,
 }: SqlPracticeEditorProps) {
   const [code, setCode] = useState("-- Write your SQL here\nSELECT 1;");
   const [leftTab, setLeftTab] = useState<LeftTab>("Description");
@@ -650,6 +652,16 @@ export function SqlPracticeEditor({
           >
             {loading ? "Submitting…" : "Submit"}
           </Button>
+          {nextSlug && (
+            <Link
+              href={`/sql-practice/${nextSlug}`}
+              className="ml-auto"
+            >
+              <Button type="button" variant="secondary">
+                Next →
+              </Button>
+            </Link>
+          )}
         </div>
         <div className="flex min-h-0 flex-1 flex-col border-t border-neutral-200 dark:border-neutral-800">
           <div className="flex border-b border-neutral-200 dark:border-neutral-800">
