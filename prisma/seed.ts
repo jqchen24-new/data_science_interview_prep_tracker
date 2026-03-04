@@ -1066,6 +1066,306 @@ INSERT INTO company_records (id, amount, date) VALUES (1, 500, '2024-01-01'), (2
         { id: 4, amount: 200, date: "2024-01-04" },
       ],
     },
+
+    // ── Percentages & Ratios ──────────────────────────────────────────
+
+    {
+      slug: "conversion-rate",
+      title: "Signup to Purchase Conversion Rate",
+      difficulty: "medium",
+      order: 40,
+      problemStatement: `Calculate the **conversion rate** from signup to first purchase for each signup month. The rate is the number of users who made at least one purchase divided by total signups that month, as a percentage rounded to 1 decimal place.
+
+Return \`signup_month\` and \`conversion_rate\`.
+
+---
+
+**Input:**
+
+| users | |
+|---|---|
+| id | INT PRIMARY KEY |
+| signup_date | VARCHAR(255) |
+
+| purchases | |
+|---|---|
+| id | INT PRIMARY KEY |
+| user_id | INT |
+| purchase_date | VARCHAR(255) |`,
+      schemaSql: `CREATE TABLE users (id INT PRIMARY KEY, signup_date VARCHAR(255));
+CREATE TABLE purchases (id INT PRIMARY KEY, user_id INT, purchase_date VARCHAR(255));`,
+      seedSql: `INSERT INTO users (id, signup_date) VALUES (1, '2024-01-05'), (2, '2024-01-12'), (3, '2024-01-20'), (4, '2024-02-03'), (5, '2024-02-14');
+INSERT INTO purchases (id, user_id, purchase_date) VALUES (1, 1, '2024-01-10'), (2, 3, '2024-02-01'), (3, 4, '2024-02-10');`,
+      expectedResult: [
+        { signup_month: "2024-01", conversion_rate: 66.7 },
+        { signup_month: "2024-02", conversion_rate: 50.0 },
+      ],
+    },
+    {
+      slug: "market-share",
+      title: "Product Market Share",
+      difficulty: "easy",
+      order: 41,
+      problemStatement: `Calculate each product's **market share** as a percentage of total sales quantity, rounded to 1 decimal place.
+
+Return \`product\` and \`market_share\`.
+
+---
+
+**Input:**
+
+| sales | |
+|---|---|
+| id | INT PRIMARY KEY |
+| product | VARCHAR(255) |
+| quantity | INT |`,
+      schemaSql: `CREATE TABLE sales (id INT PRIMARY KEY, product VARCHAR(255), quantity INT);`,
+      seedSql: `INSERT INTO sales (id, product, quantity) VALUES (1, 'A', 100), (2, 'B', 200), (3, 'A', 150), (4, 'C', 50), (5, 'B', 100);`,
+      expectedResult: [
+        { product: "A", market_share: 41.7 },
+        { product: "B", market_share: 50.0 },
+        { product: "C", market_share: 8.3 },
+      ],
+    },
+
+    // ── Deduplication & Cleanup ───────────────────────────────────────
+
+    {
+      slug: "latest-record-per-group",
+      title: "Latest Status per Order",
+      difficulty: "easy",
+      order: 42,
+      problemStatement: `Each order can have multiple status updates. Find the **most recent status** for each order.
+
+Return \`order_id\` and \`status\`.
+
+---
+
+**Input:**
+
+| order_status | |
+|---|---|
+| id | INT PRIMARY KEY |
+| order_id | INT |
+| status | VARCHAR(255) |
+| updated_at | VARCHAR(255) |`,
+      schemaSql: `CREATE TABLE order_status (id INT PRIMARY KEY, order_id INT, status VARCHAR(255), updated_at VARCHAR(255));`,
+      seedSql: `INSERT INTO order_status (id, order_id, status, updated_at) VALUES (1, 100, 'pending', '2024-01-01 10:00'), (2, 100, 'shipped', '2024-01-02 14:00'), (3, 100, 'delivered', '2024-01-04 09:00'), (4, 200, 'pending', '2024-01-01 11:00'), (5, 200, 'shipped', '2024-01-03 16:00');`,
+      expectedResult: [
+        { order_id: 100, status: "delivered" },
+        { order_id: 200, status: "shipped" },
+      ],
+    },
+    {
+      slug: "remove-duplicate-rows",
+      title: "Find Rows to Keep (Dedup)",
+      difficulty: "medium",
+      order: 43,
+      problemStatement: `A table has duplicate rows. For each group of duplicates (same \`email\`), keep only the row with the **smallest id**. Return the ids to **keep**.
+
+Return \`id\`.
+
+---
+
+**Input:**
+
+| contacts | |
+|---|---|
+| id | INT PRIMARY KEY |
+| email | VARCHAR(255) |`,
+      schemaSql: `CREATE TABLE contacts (id INT PRIMARY KEY, email VARCHAR(255));`,
+      seedSql: `INSERT INTO contacts (id, email) VALUES (1, 'a@b.com'), (2, 'c@d.com'), (3, 'a@b.com'), (4, 'c@d.com'), (5, 'e@f.com');`,
+      expectedResult: [{ id: 1 }, { id: 2 }, { id: 5 }],
+    },
+
+    // ── Cumulative & Running Calculations ─────────────────────────────
+
+    {
+      slug: "cumulative-percentage",
+      title: "Cumulative Revenue Percentage",
+      difficulty: "hard",
+      order: 44,
+      problemStatement: `Calculate each product's revenue and its **cumulative percentage** of total revenue when sorted by revenue descending. Round to 1 decimal place.
+
+Return \`product\`, \`revenue\`, and \`cumulative_pct\`.
+
+---
+
+**Input:**
+
+| sales | |
+|---|---|
+| id | INT PRIMARY KEY |
+| product | VARCHAR(255) |
+| revenue | INT |`,
+      schemaSql: `CREATE TABLE sales (id INT PRIMARY KEY, product VARCHAR(255), revenue INT);`,
+      seedSql: `INSERT INTO sales (id, product, revenue) VALUES (1, 'A', 500), (2, 'B', 300), (3, 'C', 150), (4, 'D', 50);`,
+      expectedResult: [
+        { product: "A", revenue: 500, cumulative_pct: 50.0 },
+        { product: "B", revenue: 300, cumulative_pct: 80.0 },
+        { product: "C", revenue: 150, cumulative_pct: 95.0 },
+        { product: "D", revenue: 50, cumulative_pct: 100.0 },
+      ],
+    },
+    {
+      slug: "balance-after-transactions",
+      title: "Running Account Balance",
+      difficulty: "medium",
+      order: 45,
+      problemStatement: `Given an opening balance of **1000**, calculate the **running balance** after each transaction. Deposits add, withdrawals subtract.
+
+Return \`txn_date\`, \`type\`, \`amount\`, and \`balance\`.
+
+---
+
+**Input:**
+
+| transactions | |
+|---|---|
+| id | INT PRIMARY KEY |
+| txn_date | VARCHAR(255) |
+| type | VARCHAR(255) |
+| amount | INT |`,
+      schemaSql: `CREATE TABLE transactions (id INT PRIMARY KEY, txn_date VARCHAR(255), type VARCHAR(255), amount INT);`,
+      seedSql: `INSERT INTO transactions (id, txn_date, type, amount) VALUES (1, '2024-01-01', 'deposit', 500), (2, '2024-01-02', 'withdrawal', 200), (3, '2024-01-03', 'deposit', 300), (4, '2024-01-04', 'withdrawal', 100);`,
+      expectedResult: [
+        { txn_date: "2024-01-01", type: "deposit", amount: 500, balance: 1500 },
+        { txn_date: "2024-01-02", type: "withdrawal", amount: 200, balance: 1300 },
+        { txn_date: "2024-01-03", type: "deposit", amount: 300, balance: 1600 },
+        { txn_date: "2024-01-04", type: "withdrawal", amount: 100, balance: 1500 },
+      ],
+    },
+
+    // ── Pattern Matching & Filtering ──────────────────────────────────
+
+    {
+      slug: "consecutive-login-days",
+      title: "Users With Weekend Logins",
+      difficulty: "medium",
+      order: 46,
+      problemStatement: `Find users who logged in on **both Saturday and Sunday** of the same weekend. Use \`strftime('%w', date)\` where 0=Sunday, 6=Saturday.
+
+Return distinct \`user_id\`.
+
+---
+
+**Input:**
+
+| logins | |
+|---|---|
+| id | INT PRIMARY KEY |
+| user_id | INT |
+| login_date | VARCHAR(255) |`,
+      schemaSql: `CREATE TABLE logins (id INT PRIMARY KEY, user_id INT, login_date VARCHAR(255));`,
+      seedSql: `INSERT INTO logins (id, user_id, login_date) VALUES (1, 1, '2024-03-02'), (2, 1, '2024-03-03'), (3, 2, '2024-03-02'), (4, 3, '2024-03-09'), (5, 3, '2024-03-10'), (6, 2, '2024-03-09');`,
+      expectedResult: [{ user_id: 1 }, { user_id: 3 }],
+    },
+    {
+      slug: "search-log-patterns",
+      title: "Users Who Viewed Then Purchased",
+      difficulty: "medium",
+      order: 47,
+      problemStatement: `Find users who **viewed** a product and then **purchased** the same product on the same day or later.
+
+Return distinct \`user_id\` and \`product\`.
+
+---
+
+**Input:**
+
+| activity_log | |
+|---|---|
+| id | INT PRIMARY KEY |
+| user_id | INT |
+| product | VARCHAR(255) |
+| action | VARCHAR(255) |
+| action_date | VARCHAR(255) |`,
+      schemaSql: `CREATE TABLE activity_log (id INT PRIMARY KEY, user_id INT, product VARCHAR(255), action VARCHAR(255), action_date VARCHAR(255));`,
+      seedSql: `INSERT INTO activity_log (id, user_id, product, action, action_date) VALUES (1, 1, 'Laptop', 'view', '2024-01-01'), (2, 1, 'Laptop', 'purchase', '2024-01-03'), (3, 2, 'Phone', 'purchase', '2024-01-02'), (4, 2, 'Phone', 'view', '2024-01-05'), (5, 3, 'Tablet', 'view', '2024-01-01'), (6, 1, 'Phone', 'view', '2024-01-02'), (7, 1, 'Phone', 'purchase', '2024-01-02');`,
+      expectedResult: [
+        { user_id: 1, product: "Laptop" },
+        { user_id: 1, product: "Phone" },
+      ],
+    },
+
+    // ── Grouping & Having ─────────────────────────────────────────────
+
+    {
+      slug: "single-order-customers",
+      title: "One-Time Customers",
+      difficulty: "easy",
+      order: 48,
+      problemStatement: `Find customers who have placed **exactly one order**.
+
+Return \`customer_id\` and the \`order_date\` of their single order.
+
+---
+
+**Input:**
+
+| orders | |
+|---|---|
+| id | INT PRIMARY KEY |
+| customer_id | INT |
+| order_date | VARCHAR(255) |`,
+      schemaSql: `CREATE TABLE orders (id INT PRIMARY KEY, customer_id INT, order_date VARCHAR(255));`,
+      seedSql: `INSERT INTO orders (id, customer_id, order_date) VALUES (1, 1, '2024-01-01'), (2, 2, '2024-01-05'), (3, 1, '2024-02-10'), (4, 3, '2024-03-15'), (5, 4, '2024-01-20'), (6, 4, '2024-04-01');`,
+      expectedResult: [
+        { customer_id: 2, order_date: "2024-01-05" },
+        { customer_id: 3, order_date: "2024-03-15" },
+      ],
+    },
+    {
+      slug: "above-avg-per-group",
+      title: "Above-Average Scorers per Subject",
+      difficulty: "medium",
+      order: 49,
+      problemStatement: `Find students who scored **above the average** for their subject.
+
+Return \`student\`, \`subject\`, and \`score\`.
+
+---
+
+**Input:**
+
+| exam_results | |
+|---|---|
+| id | INT PRIMARY KEY |
+| student | VARCHAR(255) |
+| subject | VARCHAR(255) |
+| score | INT |`,
+      schemaSql: `CREATE TABLE exam_results (id INT PRIMARY KEY, student VARCHAR(255), subject VARCHAR(255), score INT);`,
+      seedSql: `INSERT INTO exam_results (id, student, subject, score) VALUES (1, 'Alice', 'Math', 90), (2, 'Bob', 'Math', 60), (3, 'Carol', 'Math', 75), (4, 'Alice', 'Science', 70), (5, 'Bob', 'Science', 85), (6, 'Carol', 'Science', 80);`,
+      expectedResult: [
+        { student: "Alice", subject: "Math", score: 90 },
+        { student: "Bob", subject: "Science", score: 85 },
+      ],
+    },
+
+    // ── EXISTS & Complex Conditions ───────────────────────────────────
+
+    {
+      slug: "managers-with-five-reports",
+      title: "Managers With At Least 5 Reports",
+      difficulty: "easy",
+      order: 50,
+      problemStatement: `Find managers who have **at least 5 direct reports**.
+
+Return the manager \`name\`.
+
+---
+
+**Input:**
+
+| employees | |
+|---|---|
+| id | INT PRIMARY KEY |
+| name | VARCHAR(255) |
+| manager_id | INT |`,
+      schemaSql: `CREATE TABLE employees (id INT PRIMARY KEY, name VARCHAR(255), manager_id INT);`,
+      seedSql: `INSERT INTO employees (id, name, manager_id) VALUES (1, 'Alice', NULL), (2, 'Bob', 1), (3, 'Carol', 1), (4, 'Dave', 1), (5, 'Eve', 1), (6, 'Frank', 1), (7, 'Grace', 2), (8, 'Hank', 2);`,
+      expectedResult: [{ name: "Alice" }],
+    },
   ];
 
   for (const q of questions) {
