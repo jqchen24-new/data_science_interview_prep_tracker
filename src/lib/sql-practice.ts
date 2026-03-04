@@ -101,29 +101,56 @@ function normalizeRows(rows: Record<string, unknown>[]): string[] {
     .sort();
 }
 
+/** Compare rows by sorted values only (ignoring column names). */
+function normalizeRowsValuesOnly(rows: Record<string, unknown>[]): string[] {
+  if (!Array.isArray(rows)) return [];
+  return rows
+    .map((row) => {
+      if (row === null || typeof row !== "object") return "[]";
+      const vals = Object.values(row).map(coerceValue);
+      vals.sort((a, b) => JSON.stringify(a ?? "").localeCompare(JSON.stringify(b ?? "")));
+      return JSON.stringify(vals);
+    })
+    .sort();
+}
+
+function arraysMatch(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 /**
  * Compare actual query result to expected result. Both are arrays of row objects.
  * Column order and row order are normalized before comparison.
+ * Falls back to value-only comparison when column names differ (e.g. generic columns).
  */
 export function compareSqlResult(
   actualRows: Record<string, unknown>[],
   expectedRows: Record<string, unknown>[]
 ): { passed: boolean; message?: string } {
-  const a = normalizeRows(Array.isArray(actualRows) ? actualRows : []);
-  const b = normalizeRows(Array.isArray(expectedRows) ? expectedRows : []);
-  if (a.length !== b.length) {
+  const actual = Array.isArray(actualRows) ? actualRows : [];
+  const expected = Array.isArray(expectedRows) ? expectedRows : [];
+
+  if (actual.length !== expected.length) {
     return {
       passed: false,
-      message: `Expected ${b.length} row(s), got ${a.length}`,
+      message: `Expected ${expected.length} row(s), got ${actual.length}`,
     };
   }
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) {
-      return {
-        passed: false,
-        message: "Result rows don't match expected output.",
-      };
-    }
-  }
-  return { passed: true };
+
+  const a = normalizeRows(actual);
+  const b = normalizeRows(expected);
+  if (arraysMatch(a, b)) return { passed: true };
+
+  const aVals = normalizeRowsValuesOnly(actual);
+  const bVals = normalizeRowsValuesOnly(expected);
+  if (arraysMatch(aVals, bVals)) return { passed: true };
+
+  return {
+    passed: false,
+    message: "Result rows don't match expected output.",
+  };
 }
