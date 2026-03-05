@@ -57,7 +57,7 @@ export async function completeTaskFormAction(formData: FormData): Promise<void> 
   const taskId = formData.get("taskId") as string;
   if (taskId) {
     await completeTask(session.user.id, taskId);
-    await checkAndUnlockAchievements(session.user.id);
+    await checkAndUnlockAchievements(session.user.id).catch(() => {});
     revalidatePath("/");
     revalidatePath("/plan");
     revalidatePath("/tasks");

@@ -223,10 +223,14 @@ export async function getWeeklyInsights(userId: string): Promise<{
     });
   }
 
-  // Achievement count
-  const unlockedCount = await prisma.userAchievement.count({
-    where: { userId },
-  });
+  let unlockedCount = 0;
+  try {
+    unlockedCount = await prisma.userAchievement.count({
+      where: { userId },
+    });
+  } catch {
+    // table may not exist yet
+  }
 
   return {
     insights: insights.slice(0, 4),

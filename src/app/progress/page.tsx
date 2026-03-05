@@ -16,7 +16,7 @@ export default async function ProgressPage() {
 
   const [stats, achievements] = await Promise.all([
     getProgressStats(userId),
-    getUserAchievements(userId),
+    getUserAchievements(userId).catch(() => []),
   ]);
 
   return (
