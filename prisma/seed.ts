@@ -1366,6 +1366,464 @@ Return the manager \`name\`.
       seedSql: `INSERT INTO employees (id, name, manager_id) VALUES (1, 'Alice', NULL), (2, 'Bob', 1), (3, 'Carol', 1), (4, 'Dave', 1), (5, 'Eve', 1), (6, 'Frank', 1), (7, 'Grace', 2), (8, 'Hank', 2);`,
       expectedResult: [{ name: "Alice" }],
     },
+
+    // ── Conditional Aggregation & CASE ────────────────────────────────
+
+    {
+      slug: "conditional-aggregation",
+      title: "Order Status Summary",
+      difficulty: "easy",
+      order: 51,
+      problemStatement: `For each customer, count how many orders are in each status (\`pending\`, \`shipped\`, \`delivered\`) using **conditional aggregation**.
+
+Return \`customer_id\`, \`pending\`, \`shipped\`, and \`delivered\`.
+
+---
+
+**Input:**
+
+| orders | |
+|---|---|
+| id | INT PRIMARY KEY |
+| customer_id | INT |
+| status | VARCHAR(255) |`,
+      schemaSql: `CREATE TABLE orders (id INT PRIMARY KEY, customer_id INT, status VARCHAR(255));`,
+      seedSql: `INSERT INTO orders (id, customer_id, status) VALUES (1, 1, 'pending'), (2, 1, 'shipped'), (3, 1, 'delivered'), (4, 1, 'delivered'), (5, 2, 'pending'), (6, 2, 'pending'), (7, 3, 'shipped'), (8, 3, 'delivered');`,
+      expectedResult: [
+        { customer_id: 1, pending: 1, shipped: 1, delivered: 2 },
+        { customer_id: 2, pending: 2, shipped: 0, delivered: 0 },
+        { customer_id: 3, pending: 0, shipped: 1, delivered: 1 },
+      ],
+    },
+    {
+      slug: "salary-bands",
+      title: "Salary Band Classification",
+      difficulty: "easy",
+      order: 52,
+      problemStatement: `Classify each employee into a salary band:
+- **Low**: salary < 50000
+- **Mid**: salary between 50000 and 99999 (inclusive)
+- **High**: salary >= 100000
+
+Return \`name\`, \`salary\`, and \`band\`.
+
+---
+
+**Input:**
+
+| employees | |
+|---|---|
+| id | INT PRIMARY KEY |
+| name | VARCHAR(255) |
+| salary | INT |`,
+      schemaSql: `CREATE TABLE employees (id INT PRIMARY KEY, name VARCHAR(255), salary INT);`,
+      seedSql: `INSERT INTO employees (id, name, salary) VALUES (1, 'Alice', 120000), (2, 'Bob', 45000), (3, 'Carol', 75000), (4, 'Dave', 95000), (5, 'Eve', 30000);`,
+      expectedResult: [
+        { name: "Alice", salary: 120000, band: "High" },
+        { name: "Bob", salary: 45000, band: "Low" },
+        { name: "Carol", salary: 75000, band: "Mid" },
+        { name: "Dave", salary: 95000, band: "Mid" },
+        { name: "Eve", salary: 30000, band: "Low" },
+      ],
+    },
+
+    // ── UNION & Combining Results ─────────────────────────────────────
+
+    {
+      slug: "union-all-sources",
+      title: "Merge Event Streams",
+      difficulty: "easy",
+      order: 53,
+      problemStatement: `Combine events from \`web_events\` and \`mobile_events\` into a single list. Add a column \`source\` with value \`'web'\` or \`'mobile'\` respectively.
+
+Return \`user_id\`, \`event\`, \`event_date\`, and \`source\`. Order by \`event_date\`.
+
+---
+
+**Input:**
+
+| web_events | |
+|---|---|
+| id | INT PRIMARY KEY |
+| user_id | INT |
+| event | VARCHAR(255) |
+| event_date | VARCHAR(255) |
+
+| mobile_events | |
+|---|---|
+| id | INT PRIMARY KEY |
+| user_id | INT |
+| event | VARCHAR(255) |
+| event_date | VARCHAR(255) |`,
+      schemaSql: `CREATE TABLE web_events (id INT PRIMARY KEY, user_id INT, event VARCHAR(255), event_date VARCHAR(255));
+CREATE TABLE mobile_events (id INT PRIMARY KEY, user_id INT, event VARCHAR(255), event_date VARCHAR(255));`,
+      seedSql: `INSERT INTO web_events (id, user_id, event, event_date) VALUES (1, 1, 'login', '2024-01-01'), (2, 2, 'purchase', '2024-01-03');
+INSERT INTO mobile_events (id, user_id, event, event_date) VALUES (1, 1, 'view', '2024-01-02'), (2, 3, 'login', '2024-01-04');`,
+      expectedResult: [
+        { user_id: 1, event: "login", event_date: "2024-01-01", source: "web" },
+        { user_id: 1, event: "view", event_date: "2024-01-02", source: "mobile" },
+        { user_id: 2, event: "purchase", event_date: "2024-01-03", source: "web" },
+        { user_id: 3, event: "login", event_date: "2024-01-04", source: "mobile" },
+      ],
+    },
+
+    // ── Correlated Subqueries ─────────────────────────────────────────
+
+    {
+      slug: "departments-all-above-threshold",
+      title: "Departments Where Everyone Earns Above 60k",
+      difficulty: "medium",
+      order: 54,
+      problemStatement: `Find departments where **every** employee earns more than 60000.
+
+Return \`department\`.
+
+---
+
+**Input:**
+
+| employees | |
+|---|---|
+| id | INT PRIMARY KEY |
+| name | VARCHAR(255) |
+| department | VARCHAR(255) |
+| salary | INT |`,
+      schemaSql: `CREATE TABLE employees (id INT PRIMARY KEY, name VARCHAR(255), department VARCHAR(255), salary INT);`,
+      seedSql: `INSERT INTO employees (id, name, department, salary) VALUES (1, 'Alice', 'Engineering', 90000), (2, 'Bob', 'Engineering', 80000), (3, 'Carol', 'Sales', 55000), (4, 'Dave', 'Sales', 70000), (5, 'Eve', 'Marketing', 65000), (6, 'Frank', 'Marketing', 72000);`,
+      expectedResult: [
+        { department: "Engineering" },
+        { department: "Marketing" },
+      ],
+    },
+    {
+      slug: "latest-order-per-customer",
+      title: "Most Expensive Order per Customer",
+      difficulty: "medium",
+      order: 55,
+      problemStatement: `For each customer, find their **single most expensive order**. If there's a tie, pick the one with the latest \`order_date\`.
+
+Return \`customer_id\`, \`order_id\`, \`amount\`, and \`order_date\`.
+
+---
+
+**Input:**
+
+| orders | |
+|---|---|
+| id | INT PRIMARY KEY |
+| customer_id | INT |
+| amount | INT |
+| order_date | VARCHAR(255) |`,
+      schemaSql: `CREATE TABLE orders (id INT PRIMARY KEY, customer_id INT, amount INT, order_date VARCHAR(255));`,
+      seedSql: `INSERT INTO orders (id, customer_id, amount, order_date) VALUES (1, 1, 200, '2024-01-01'), (2, 1, 500, '2024-01-15'), (3, 1, 500, '2024-02-01'), (4, 2, 300, '2024-01-10'), (5, 2, 100, '2024-02-05');`,
+      expectedResult: [
+        { customer_id: 1, order_id: 3, amount: 500, order_date: "2024-02-01" },
+        { customer_id: 2, order_id: 4, amount: 300, order_date: "2024-01-10" },
+      ],
+    },
+
+    // ── Window Frames & Moving Calculations ───────────────────────────
+
+    {
+      slug: "moving-average",
+      title: "3-Day Moving Average",
+      difficulty: "medium",
+      order: 56,
+      problemStatement: `Calculate the **3-day moving average** of daily revenue (current day + previous 2 days). Round to 1 decimal place. For the first two days, average whatever is available.
+
+Return \`sale_date\`, \`revenue\`, and \`moving_avg\`.
+
+---
+
+**Input:**
+
+| daily_sales | |
+|---|---|
+| sale_date | VARCHAR(255) |
+| revenue | INT |`,
+      schemaSql: `CREATE TABLE daily_sales (sale_date VARCHAR(255) PRIMARY KEY, revenue INT);`,
+      seedSql: `INSERT INTO daily_sales (sale_date, revenue) VALUES ('2024-01-01', 100), ('2024-01-02', 200), ('2024-01-03', 150), ('2024-01-04', 300), ('2024-01-05', 250);`,
+      expectedResult: [
+        { sale_date: "2024-01-01", revenue: 100, moving_avg: 100.0 },
+        { sale_date: "2024-01-02", revenue: 200, moving_avg: 150.0 },
+        { sale_date: "2024-01-03", revenue: 150, moving_avg: 150.0 },
+        { sale_date: "2024-01-04", revenue: 300, moving_avg: 216.7 },
+        { sale_date: "2024-01-05", revenue: 250, moving_avg: 233.3 },
+      ],
+    },
+    {
+      slug: "ntile-quartiles",
+      title: "Salary Quartiles",
+      difficulty: "medium",
+      order: 57,
+      problemStatement: `Assign each employee to a **salary quartile** (1 = lowest 25%, 4 = highest 25%) using the \`NTILE\` window function.
+
+Return \`name\`, \`salary\`, and \`quartile\`.
+
+---
+
+**Input:**
+
+| employees | |
+|---|---|
+| id | INT PRIMARY KEY |
+| name | VARCHAR(255) |
+| salary | INT |`,
+      schemaSql: `CREATE TABLE employees (id INT PRIMARY KEY, name VARCHAR(255), salary INT);`,
+      seedSql: `INSERT INTO employees (id, name, salary) VALUES (1, 'Alice', 40000), (2, 'Bob', 55000), (3, 'Carol', 70000), (4, 'Dave', 85000), (5, 'Eve', 60000), (6, 'Frank', 95000), (7, 'Grace', 50000), (8, 'Hank', 75000);`,
+      expectedResult: [
+        { name: "Alice", salary: 40000, quartile: 1 },
+        { name: "Grace", salary: 50000, quartile: 1 },
+        { name: "Bob", salary: 55000, quartile: 2 },
+        { name: "Eve", salary: 60000, quartile: 2 },
+        { name: "Carol", salary: 70000, quartile: 3 },
+        { name: "Hank", salary: 75000, quartile: 3 },
+        { name: "Dave", salary: 85000, quartile: 4 },
+        { name: "Frank", salary: 95000, quartile: 4 },
+      ],
+    },
+
+    // ── Real-World Analytics ──────────────────────────────────────────
+
+    {
+      slug: "retention-day-1",
+      title: "Day-1 Retention Rate",
+      difficulty: "hard",
+      order: 58,
+      problemStatement: `Calculate the **Day-1 retention rate** for each signup cohort (by signup date). A user is retained on Day 1 if they have an activity on the day after their signup. Return the rate as a percentage rounded to 1 decimal place.
+
+Return \`signup_date\` and \`retention_rate\`.
+
+---
+
+**Input:**
+
+| users | |
+|---|---|
+| id | INT PRIMARY KEY |
+| signup_date | VARCHAR(255) |
+
+| activity | |
+|---|---|
+| id | INT PRIMARY KEY |
+| user_id | INT |
+| activity_date | VARCHAR(255) |`,
+      schemaSql: `CREATE TABLE users (id INT PRIMARY KEY, signup_date VARCHAR(255));
+CREATE TABLE activity (id INT PRIMARY KEY, user_id INT, activity_date VARCHAR(255));`,
+      seedSql: `INSERT INTO users (id, signup_date) VALUES (1, '2024-01-01'), (2, '2024-01-01'), (3, '2024-01-01'), (4, '2024-01-02'), (5, '2024-01-02');
+INSERT INTO activity (id, user_id, activity_date) VALUES (1, 1, '2024-01-02'), (2, 3, '2024-01-02'), (3, 4, '2024-01-03'), (4, 1, '2024-01-03'), (5, 2, '2024-01-05');`,
+      expectedResult: [
+        { signup_date: "2024-01-01", retention_rate: 66.7 },
+        { signup_date: "2024-01-02", retention_rate: 50.0 },
+      ],
+    },
+    {
+      slug: "year-over-year-growth",
+      title: "Year-over-Year Revenue Growth",
+      difficulty: "medium",
+      order: 59,
+      problemStatement: `Calculate the **year-over-year revenue growth** percentage for each year (compared to the previous year). Round to 1 decimal place. Only include years that have a previous year to compare against.
+
+Return \`year\`, \`revenue\`, and \`yoy_growth\`.
+
+---
+
+**Input:**
+
+| annual_revenue | |
+|---|---|
+| year | INT PRIMARY KEY |
+| revenue | INT |`,
+      schemaSql: `CREATE TABLE annual_revenue (year INT PRIMARY KEY, revenue INT);`,
+      seedSql: `INSERT INTO annual_revenue (year, revenue) VALUES (2020, 100000), (2021, 120000), (2022, 108000), (2023, 150000);`,
+      expectedResult: [
+        { year: 2021, revenue: 120000, yoy_growth: 20.0 },
+        { year: 2022, revenue: 108000, yoy_growth: -10.0 },
+        { year: 2023, revenue: 150000, yoy_growth: 38.9 },
+      ],
+    },
+    {
+      slug: "churn-candidates",
+      title: "Identify Churned Users",
+      difficulty: "medium",
+      order: 60,
+      problemStatement: `A user is considered **churned** if their most recent activity was more than 30 days before the latest date in the activity table. Find all churned users.
+
+Return \`user_id\` and \`last_active\` (their most recent activity date).
+
+---
+
+**Input:**
+
+| activity | |
+|---|---|
+| id | INT PRIMARY KEY |
+| user_id | INT |
+| activity_date | VARCHAR(255) |`,
+      schemaSql: `CREATE TABLE activity (id INT PRIMARY KEY, user_id INT, activity_date VARCHAR(255));`,
+      seedSql: `INSERT INTO activity (id, user_id, activity_date) VALUES (1, 1, '2024-03-01'), (2, 1, '2024-03-15'), (3, 2, '2024-01-10'), (4, 2, '2024-01-20'), (5, 3, '2024-03-14'), (6, 4, '2024-02-01');`,
+      expectedResult: [
+        { user_id: 2, last_active: "2024-01-20" },
+        { user_id: 4, last_active: "2024-02-01" },
+      ],
+    },
+
+    // ── Advanced Joins ────────────────────────────────────────────────
+
+    {
+      slug: "self-join-pairs",
+      title: "Employee Pairs in Same Department",
+      difficulty: "medium",
+      order: 61,
+      problemStatement: `Find all **unique pairs** of employees who work in the same department. Each pair should appear only once (alphabetically by first name).
+
+Return \`employee1\`, \`employee2\`, and \`department\`.
+
+---
+
+**Input:**
+
+| employees | |
+|---|---|
+| id | INT PRIMARY KEY |
+| name | VARCHAR(255) |
+| department | VARCHAR(255) |`,
+      schemaSql: `CREATE TABLE employees (id INT PRIMARY KEY, name VARCHAR(255), department VARCHAR(255));`,
+      seedSql: `INSERT INTO employees (id, name, department) VALUES (1, 'Alice', 'Eng'), (2, 'Bob', 'Eng'), (3, 'Carol', 'Eng'), (4, 'Dave', 'Sales'), (5, 'Eve', 'Sales');`,
+      expectedResult: [
+        { employee1: "Alice", employee2: "Bob", department: "Eng" },
+        { employee1: "Alice", employee2: "Carol", department: "Eng" },
+        { employee1: "Bob", employee2: "Carol", department: "Eng" },
+        { employee1: "Dave", employee2: "Eve", department: "Sales" },
+      ],
+    },
+    {
+      slug: "cross-join-missing-data",
+      title: "Fill Missing Month-Product Combinations",
+      difficulty: "hard",
+      order: 62,
+      problemStatement: `You have sales data but some month/product combinations are missing (zero sales). Generate **all combinations** of months and products, showing 0 for months with no sales.
+
+Return \`month\`, \`product\`, and \`total_sales\`. Order by month, then product.
+
+---
+
+**Input:**
+
+| sales | |
+|---|---|
+| id | INT PRIMARY KEY |
+| month | VARCHAR(255) |
+| product | VARCHAR(255) |
+| amount | INT |`,
+      schemaSql: `CREATE TABLE sales (id INT PRIMARY KEY, month VARCHAR(255), product VARCHAR(255), amount INT);`,
+      seedSql: `INSERT INTO sales (id, month, product, amount) VALUES (1, '2024-01', 'A', 100), (2, '2024-01', 'B', 200), (3, '2024-02', 'A', 150), (4, '2024-03', 'B', 300);`,
+      expectedResult: [
+        { month: "2024-01", product: "A", total_sales: 100 },
+        { month: "2024-01", product: "B", total_sales: 200 },
+        { month: "2024-02", product: "A", total_sales: 150 },
+        { month: "2024-02", product: "B", total_sales: 0 },
+        { month: "2024-03", product: "A", total_sales: 0 },
+        { month: "2024-03", product: "B", total_sales: 300 },
+      ],
+    },
+
+    // ── Island & Gap Problems ─────────────────────────────────────────
+
+    {
+      slug: "group-consecutive-events",
+      title: "Group Consecutive Status Periods",
+      difficulty: "hard",
+      order: 63,
+      problemStatement: `A server's status is recorded daily. Group consecutive days with the **same status** into periods.
+
+Return \`status\`, \`start_date\`, and \`end_date\` for each period, ordered by start_date.
+
+---
+
+**Input:**
+
+| server_log | |
+|---|---|
+| log_date | VARCHAR(255) |
+| status | VARCHAR(255) |`,
+      schemaSql: `CREATE TABLE server_log (log_date VARCHAR(255) PRIMARY KEY, status VARCHAR(255));`,
+      seedSql: `INSERT INTO server_log (log_date, status) VALUES ('2024-01-01', 'up'), ('2024-01-02', 'up'), ('2024-01-03', 'down'), ('2024-01-04', 'down'), ('2024-01-05', 'down'), ('2024-01-06', 'up'), ('2024-01-07', 'up');`,
+      expectedResult: [
+        { status: "up", start_date: "2024-01-01", end_date: "2024-01-02" },
+        { status: "down", start_date: "2024-01-03", end_date: "2024-01-05" },
+        { status: "up", start_date: "2024-01-06", end_date: "2024-01-07" },
+      ],
+    },
+
+    // ── Practical Business Queries ────────────────────────────────────
+
+    {
+      slug: "revenue-contribution",
+      title: "Customer Revenue Contribution Tier",
+      difficulty: "medium",
+      order: 64,
+      problemStatement: `Classify customers by their total spending:
+- **Gold**: top 20% of spenders (by revenue)
+- **Silver**: next 30%
+- **Bronze**: remaining 50%
+
+Use \`NTILE(10)\` to create deciles, then map: deciles 9-10 = Gold, 7-8 = Silver, 1-6 = Bronze.
+
+Return \`customer_id\`, \`total_revenue\`, and \`tier\`.
+
+---
+
+**Input:**
+
+| orders | |
+|---|---|
+| id | INT PRIMARY KEY |
+| customer_id | INT |
+| amount | INT |`,
+      schemaSql: `CREATE TABLE orders (id INT PRIMARY KEY, customer_id INT, amount INT);`,
+      seedSql: `INSERT INTO orders (id, customer_id, amount) VALUES (1, 1, 500), (2, 1, 300), (3, 2, 1000), (4, 2, 500), (5, 3, 200), (6, 4, 100), (7, 5, 400), (8, 5, 200), (9, 6, 50), (10, 7, 900), (11, 7, 100), (12, 8, 300), (13, 9, 150), (14, 10, 80);`,
+      expectedResult: [
+        { customer_id: 2, total_revenue: 1500, tier: "Gold" },
+        { customer_id: 7, total_revenue: 1000, tier: "Gold" },
+        { customer_id: 1, total_revenue: 800, tier: "Silver" },
+        { customer_id: 5, total_revenue: 600, tier: "Silver" },
+        { customer_id: 8, total_revenue: 300, tier: "Silver" },
+        { customer_id: 3, total_revenue: 200, tier: "Bronze" },
+        { customer_id: 9, total_revenue: 150, tier: "Bronze" },
+        { customer_id: 4, total_revenue: 100, tier: "Bronze" },
+        { customer_id: 10, total_revenue: 80, tier: "Bronze" },
+        { customer_id: 6, total_revenue: 50, tier: "Bronze" },
+      ],
+    },
+    {
+      slug: "inventory-reorder",
+      title: "Products to Reorder",
+      difficulty: "easy",
+      order: 65,
+      problemStatement: `Find products where current \`stock\` is **below** the \`reorder_level\`. Also calculate how many units to order: \`reorder_level - stock + safety_stock\`.
+
+Return \`product\`, \`stock\`, \`reorder_level\`, and \`order_qty\`.
+
+---
+
+**Input:**
+
+| inventory | |
+|---|---|
+| id | INT PRIMARY KEY |
+| product | VARCHAR(255) |
+| stock | INT |
+| reorder_level | INT |
+| safety_stock | INT |`,
+      schemaSql: `CREATE TABLE inventory (id INT PRIMARY KEY, product VARCHAR(255), stock INT, reorder_level INT, safety_stock INT);`,
+      seedSql: `INSERT INTO inventory (id, product, stock, reorder_level, safety_stock) VALUES (1, 'Widget A', 15, 20, 10), (2, 'Widget B', 50, 30, 5), (3, 'Widget C', 3, 25, 15), (4, 'Widget D', 0, 10, 5);`,
+      expectedResult: [
+        { product: "Widget A", stock: 15, reorder_level: 20, order_qty: 15 },
+        { product: "Widget C", stock: 3, reorder_level: 25, order_qty: 37 },
+        { product: "Widget D", stock: 0, reorder_level: 10, order_qty: 15 },
+      ],
+    },
   ];
 
   for (const q of questions) {
