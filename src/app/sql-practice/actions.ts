@@ -5,6 +5,50 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 
+// ── Suggestion box ───────────────────────────────────────────────────
+
+export type SubmitSuggestionResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export async function submitSuggestionAction(
+  topic: string,
+  difficulty: string,
+  description: string,
+): Promise<SubmitSuggestionResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/signin");
+  }
+  const trimTopic = topic.trim();
+  const trimDesc = description.trim();
+  if (!trimTopic || !trimDesc) {
+    return { ok: false, error: "Topic and description are required." };
+  }
+  if (trimDesc.length > 2000) {
+    return { ok: false, error: "Description must be under 2000 characters." };
+  }
+  await prisma.sqlSuggestion.create({
+    data: {
+      userId: session.user.id,
+      topic: trimTopic,
+      difficulty,
+      description: trimDesc,
+    },
+  });
+  return { ok: true };
+}
+
+export async function getUserSuggestions() {
+  const session = await auth();
+  if (!session?.user?.id) return [];
+  return prisma.sqlSuggestion.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+}
+
 export type SubmitAttemptResult =
   | { ok: true; attemptId: string }
   | { ok: false; error: string };

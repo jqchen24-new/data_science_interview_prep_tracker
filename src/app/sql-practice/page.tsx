@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getSqlQuestions, getSqlAttemptPassedByQuestion } from "@/lib/sql-practice";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { SuggestQuestionButton } from "@/components/sql-practice/SuggestQuestionButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "SQL Practice" };
@@ -20,13 +21,16 @@ export default async function SqlPracticeListPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
-          SQL Practice
-        </h1>
-        <p className="mt-1 text-neutral-600 dark:text-neutral-400">
-          Real interview-style SQL questions. Run your query against the sample database, then submit for feedback.
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
+            SQL Practice
+          </h1>
+          <p className="mt-1 text-neutral-600 dark:text-neutral-400">
+            Real interview-style SQL questions. Run your query against the sample database, then submit for feedback.
+          </p>
+        </div>
+        <SuggestQuestionButton />
       </div>
       <Card>
         <CardTitle>Questions</CardTitle>

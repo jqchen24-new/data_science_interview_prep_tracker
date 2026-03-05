@@ -49,7 +49,8 @@ model User {
   tasks         Task[]
   applications  Application[]
   tags          Tag[]
-  sqlAttempts   SqlAttempt[]
+  sqlAttempts      SqlAttempt[]
+  sqlSuggestions   SqlSuggestion[]
 }
 
 model VerificationToken {
@@ -138,4 +139,17 @@ model SqlAttempt {
   question     SqlQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@index([userId, questionId])
+}
+
+model SqlSuggestion {
+  id          String   @id @default(cuid())
+  userId      String
+  topic       String
+  difficulty  String
+  description String
+  status      String   @default("pending") // pending, reviewed, accepted, dismissed
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
