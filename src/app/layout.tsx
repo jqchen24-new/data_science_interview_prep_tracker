@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import { resolveProfession, getCopyForProfession } from "@/lib/profession-config";
 import { Nav } from "@/components/layout/Nav";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Footer } from "@/components/layout/Footer";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { OnboardingGate } from "@/components/OnboardingGate";
+import { ReminderScheduler } from "@/components/layout/ReminderScheduler";
 
 export async function generateMetadata(): Promise<Metadata> {
   const session = await auth();
@@ -28,6 +30,22 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
+
+  let reminderEnabled = false;
+  let reminderTime: string | null = null;
+  if (session?.user?.id) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { reminderEnabled: true, reminderTime: true },
+      });
+      reminderEnabled = user?.reminderEnabled ?? false;
+      reminderTime = user?.reminderTime ?? null;
+    } catch {
+      // ignore — reminder is best-effort
+    }
+  }
+
   return (
     <html lang="en">
       <body className="min-h-screen antialiased">
@@ -40,6 +58,7 @@ export default async function RootLayout({
             </div>
           </OnboardingGate>
         </SessionProvider>
+        <ReminderScheduler enabled={reminderEnabled} time={reminderTime} />
         <Analytics />
       </body>
     </html>

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { createTask, completeTask, uncompleteTask, deleteTask, getTasks } from "@/lib/tasks";
+import { checkAndUnlockAchievements } from "@/lib/achievements";
 
 export type PlanTodayTask = Awaited<ReturnType<typeof getTasks>>[number];
 
@@ -56,6 +57,7 @@ export async function completeTaskFormAction(formData: FormData): Promise<void> 
   const taskId = formData.get("taskId") as string;
   if (taskId) {
     await completeTask(session.user.id, taskId);
+    await checkAndUnlockAchievements(session.user.id);
     revalidatePath("/");
     revalidatePath("/plan");
     revalidatePath("/tasks");

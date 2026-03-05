@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { getProgressStats, getWeeklyInsights } from "@/lib/progress";
-import { DashboardTodayCardClient } from "@/components/dashboard/DashboardTodayCardClient";
+import { getTasksForDate } from "@/lib/tasks";
+import { getProgressStats } from "@/lib/progress";
+import { DashboardTodayCard } from "@/components/dashboard/DashboardTodayCard";
 import { DashboardProgressCard } from "@/components/dashboard/DashboardProgressCard";
-import { DashboardInsightsCard } from "@/components/dashboard/DashboardInsightsCard";
-import { DashboardNudge } from "@/components/dashboard/DashboardNudge";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -37,14 +35,15 @@ export default async function DashboardPage() {
     );
   }
 
+  let todayTasks: Awaited<ReturnType<typeof getTasksForDate>> = [];
   let stats: Awaited<ReturnType<typeof getProgressStats>> | null = null;
-  let insightsData: Awaited<ReturnType<typeof getWeeklyInsights>> | null = null;
   let loadError: string | null = null;
 
   try {
-    [stats, insightsData] = await Promise.all([
+    const today = new Date();
+    [todayTasks, stats] = await Promise.all([
+      getTasksForDate(userId, today),
       getProgressStats(userId),
-      getWeeklyInsights(userId),
     ]);
   } catch (e) {
     loadError = e instanceof Error ? e.message : "Failed to load dashboard data";
@@ -68,12 +67,6 @@ export default async function DashboardPage() {
     );
   }
 
-  const serverToday = new Date();
-  const serverStart = new Date(serverToday);
-  serverStart.setHours(0, 0, 0, 0);
-  const serverEnd = new Date(serverToday);
-  serverEnd.setHours(23, 59, 59, 999);
-
   return (
     <div className="space-y-8">
       <div>
@@ -83,20 +76,10 @@ export default async function DashboardPage() {
         <p className="mt-1 text-neutral-600 dark:text-neutral-400">
           Today&apos;s plan and your progress at a glance.
         </p>
-        <p className="mt-3 max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">
-          The Offer Lab helps you track study sessions, plan your day, and manage job applications—so you can stay on top of your interview prep.
-        </p>
       </div>
 
-      {insightsData && (
-        <DashboardNudge insights={insightsData.insights} streak={stats.streak} />
-      )}
-
       <div className="grid gap-6 lg:grid-cols-2">
-        <DashboardTodayCardClient
-          serverTodayStartIso={serverStart.toISOString()}
-          serverTodayEndIso={serverEnd.toISOString()}
-        />
+        <DashboardTodayCard tasks={todayTasks} />
         <DashboardProgressCard
           weekMinutes={stats.weekMinutes}
           lastWeekMinutes={stats.lastWeekMinutes}
@@ -108,14 +91,6 @@ export default async function DashboardPage() {
           totalTasksCount={stats.totalTasksCount}
         />
       </div>
-
-      {insightsData && (
-        <DashboardInsightsCard
-          insights={insightsData.insights}
-          achievementCount={insightsData.achievementCount}
-          achievementTotal={insightsData.achievementTotal}
-        />
-      )}
     </div>
   );
 }

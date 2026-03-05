@@ -50,3 +50,39 @@ export async function addDefaultTagsAction() {
   revalidatePath("/tasks");
   return { error: null };
 }
+
+export async function updateReminderAction(formData: FormData) {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return { error: "You must be signed in" };
+
+  const enabled = formData.get("reminderEnabled") === "on";
+  const time = (formData.get("reminderTime") as string)?.trim() || null;
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      reminderEnabled: enabled,
+      reminderTime: enabled ? time : null,
+    },
+  });
+
+  revalidatePath("/settings");
+  return { error: null };
+}
+
+export async function getReminderSettings() {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return { enabled: false, time: null };
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { reminderEnabled: true, reminderTime: true },
+  });
+
+  return {
+    enabled: user?.reminderEnabled ?? false,
+    time: user?.reminderTime ?? null,
+  };
+}

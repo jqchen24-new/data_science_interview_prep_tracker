@@ -1,4 +1,5 @@
 import { prisma } from "./db";
+import { ACHIEVEMENTS } from "./achievements";
 
 export async function getProgressStats(userId: string) {
   const tasks = await prisma.task.findMany({
@@ -101,5 +102,135 @@ export async function getProgressStats(userId: string) {
     completedCount: tasks.length,
     totalTasksCount,
     completedTasksCount,
+  };
+}
+
+export type WeeklyInsight = {
+  type: "positive" | "warning" | "neutral";
+  text: string;
+};
+
+export async function getWeeklyInsights(userId: string): Promise<{
+  insights: WeeklyInsight[];
+  achievementCount: number;
+  achievementTotal: number;
+}> {
+  const stats = await getProgressStats(userId);
+  const insights: WeeklyInsight[] = [];
+
+  // Study time comparison
+  if (stats.lastWeekMinutes > 0) {
+    const pct = Math.round(
+      ((stats.weekMinutes - stats.lastWeekMinutes) / stats.lastWeekMinutes) * 100
+    );
+    if (pct > 0) {
+      insights.push({
+        type: "positive",
+        text: `You studied ${pct}% more than last week`,
+      });
+    } else if (pct < 0) {
+      insights.push({
+        type: "warning",
+        text: `Study time dropped ${Math.abs(pct)}% from last week`,
+      });
+    } else {
+      insights.push({
+        type: "neutral",
+        text: "Same study time as last week — keep it consistent!",
+      });
+    }
+  } else if (stats.weekMinutes > 0) {
+    insights.push({
+      type: "positive",
+      text: `Great start this week — ${stats.weekMinutes} min so far!`,
+    });
+  }
+
+  // SQL solved this week
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  weekStart.setHours(0, 0, 0, 0);
+
+  const sqlSolvedThisWeek = prisma.sqlAttempt
+    ? await prisma.sqlAttempt.findMany({
+        where: {
+          userId,
+          passed: true,
+          createdAt: { gte: weekStart },
+        },
+        select: { questionId: true },
+        distinct: ["questionId"],
+      })
+    : [];
+  if (sqlSolvedThisWeek.length > 0) {
+    insights.push({
+      type: "positive",
+      text: `You solved ${sqlSolvedThisWeek.length} new SQL question${sqlSolvedThisWeek.length > 1 ? "s" : ""} this week`,
+    });
+  }
+
+  // Neglected tags (7+ days without practice)
+  const allTags = await prisma.tag.findMany({ where: { userId } });
+  const completedTasks = await prisma.task.findMany({
+    where: { userId, completedAt: { not: null } },
+    include: { tags: true },
+    orderBy: { completedAt: "desc" },
+  });
+
+  const lastPracticedByTag = new Map<string, Date>();
+  for (const task of completedTasks) {
+    for (const tt of task.tags) {
+      if (!lastPracticedByTag.has(tt.tagId)) {
+        lastPracticedByTag.set(tt.tagId, task.completedAt!);
+      }
+    }
+  }
+
+  const today = new Date();
+  const neglected: { name: string; days: number }[] = [];
+  for (const tag of allTags) {
+    const last = lastPracticedByTag.get(tag.id);
+    if (!last) {
+      neglected.push({ name: tag.name, days: 999 });
+    } else {
+      const days = Math.floor(
+        (today.getTime() - last.getTime()) / (24 * 60 * 60 * 1000)
+      );
+      if (days >= 7) {
+        neglected.push({ name: tag.name, days });
+      }
+    }
+  }
+  neglected.sort((a, b) => b.days - a.days);
+  if (neglected.length > 0) {
+    const top = neglected[0];
+    const dayText = top.days >= 999 ? "never practiced" : `${top.days} days ago`;
+    insights.push({
+      type: "warning",
+      text: `You haven't practiced ${top.name} (last: ${dayText})`,
+    });
+  }
+
+  // Streak at risk
+  const todayStr = today.toISOString().slice(0, 10);
+  const completedToday = completedTasks.some(
+    (t) => t.completedAt!.toISOString().slice(0, 10) === todayStr
+  );
+  if (stats.streak > 0 && !completedToday) {
+    insights.push({
+      type: "warning",
+      text: `Your ${stats.streak}-day streak is at risk — complete a task today!`,
+    });
+  }
+
+  // Achievement count
+  const unlockedCount = await prisma.userAchievement.count({
+    where: { userId },
+  });
+
+  return {
+    insights: insights.slice(0, 4),
+    achievementCount: unlockedCount,
+    achievementTotal: ACHIEVEMENTS.length,
   };
 }

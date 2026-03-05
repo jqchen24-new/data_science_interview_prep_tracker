@@ -42,13 +42,16 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  passwordHash  String?   // for email/password sign-in (null for Google-only users)
-  profession    String?   // e.g. data_science, software_engineering, product, design, other
-  accounts      Account[]
-  sessions      Session[]
-  tasks         Task[]
-  applications  Application[]
-  tags          Tag[]
+  passwordHash    String?   // for email/password sign-in (null for Google-only users)
+  profession      String?   // e.g. data_science, software_engineering, product, design, other
+  reminderEnabled Boolean   @default(false)
+  reminderTime    String?   // e.g. "09:00" (user's local time)
+  accounts        Account[]
+  sessions        Session[]
+  tasks           Task[]
+  applications    Application[]
+  tags            Tag[]
+  achievements     UserAchievement[]
 }
 
 model VerificationToken {
@@ -106,4 +109,15 @@ model Application {
   updatedAt          DateTime  @updatedAt
   userId             String
   user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserAchievement {
+  id             String   @id @default(cuid())
+  userId         String
+  achievementKey String
+  unlockedAt     DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementKey])
+  @@index([userId])
 }

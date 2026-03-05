@@ -1,10 +1,10 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { PROFESSION_OPTIONS, resolveProfession } from "@/lib/profession-config";
-import { updateProfessionAction, addDefaultTagsAction } from "./actions";
+import { updateProfessionAction, addDefaultTagsAction, getReminderSettings } from "./actions";
 import { Card, CardTitle } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
 import { SettingsForm } from "./SettingsForm";
+import { ReminderSettings } from "./ReminderSettings";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Settings" };
@@ -17,6 +17,7 @@ export default async function SettingsPage() {
   const profession = session.user.profession ?? null;
   const resolved = resolveProfession(profession);
   const currentLabel = PROFESSION_OPTIONS.find((p) => p.id === resolved)?.label ?? "Not set";
+  const reminder = await getReminderSettings();
 
   return (
     <div className="space-y-8">
@@ -39,6 +40,17 @@ export default async function SettingsPage() {
           currentProfession={profession ?? ""}
           updateAction={updateProfessionAction}
           addDefaultTagsAction={addDefaultTagsAction}
+        />
+      </Card>
+
+      <Card>
+        <CardTitle>Study Reminders</CardTitle>
+        <p className="mb-3 text-sm text-neutral-500 dark:text-neutral-400">
+          Get a browser notification to remind you to study. Works when the app tab is open.
+        </p>
+        <ReminderSettings
+          initialEnabled={reminder.enabled}
+          initialTime={reminder.time ?? "09:00"}
         />
       </Card>
     </div>

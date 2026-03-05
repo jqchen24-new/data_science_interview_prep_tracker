@@ -1,8 +1,10 @@
 import { auth } from "@/lib/auth";
 import { getProgressStats } from "@/lib/progress";
+import { getUserAchievements } from "@/lib/achievements";
 import { Card, CardTitle } from "@/components/ui/Card";
 import { ProgressStats } from "@/components/progress/ProgressStats";
 import { ProgressChartSection } from "@/components/progress/ProgressChartSection";
+import { AchievementsGrid } from "@/components/progress/AchievementsGrid";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Progress" };
@@ -12,7 +14,10 @@ export default async function ProgressPage() {
   const userId = session?.user?.id;
   if (!userId) return null;
 
-  const stats = await getProgressStats(userId);
+  const [stats, achievements] = await Promise.all([
+    getProgressStats(userId),
+    getUserAchievements(userId),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -26,6 +31,8 @@ export default async function ProgressPage() {
       </div>
 
       <ProgressStats stats={stats} />
+
+      <AchievementsGrid achievements={achievements} />
 
       <Card>
         <CardTitle>Time by tag</CardTitle>
