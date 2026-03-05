@@ -14,10 +14,39 @@ export default async function ProgressPage() {
   const userId = session?.user?.id;
   if (!userId) return null;
 
-  const [stats, achievements] = await Promise.all([
-    getProgressStats(userId),
-    getUserAchievements(userId).catch(() => []),
-  ]);
+  let stats: Awaited<ReturnType<typeof getProgressStats>> | null = null;
+  let achievements: Awaited<ReturnType<typeof getUserAchievements>> = [];
+  let loadError: string | null = null;
+
+  try {
+    stats = await getProgressStats(userId);
+  } catch (e) {
+    loadError = e instanceof Error ? e.message : "Failed to load progress data";
+  }
+
+  try {
+    achievements = await getUserAchievements(userId);
+  } catch {
+    // achievements table may not exist yet
+  }
+
+  if (loadError || !stats) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
+          Progress
+        </h1>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950/40">
+          <p className="font-medium text-red-800 dark:text-red-200">
+            Something went wrong
+          </p>
+          <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+            {loadError ?? "Could not load your data."}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -32,7 +61,9 @@ export default async function ProgressPage() {
 
       <ProgressStats stats={stats} />
 
-      <AchievementsGrid achievements={achievements} />
+      {achievements.length > 0 && (
+        <AchievementsGrid achievements={achievements} />
+      )}
 
       <Card>
         <CardTitle>Time by tag</CardTitle>

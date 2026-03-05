@@ -1,5 +1,4 @@
 import { prisma } from "./db";
-import { ACHIEVEMENTS } from "./achievements";
 
 export async function getProgressStats(userId: string) {
   const tasks = await prisma.task.findMany({
@@ -235,6 +234,6 @@ export async function getWeeklyInsights(userId: string): Promise<{
   return {
     insights: insights.slice(0, 4),
     achievementCount: unlockedCount,
-    achievementTotal: ACHIEVEMENTS.length,
+    achievementTotal: (await import("./achievements")).ACHIEVEMENTS.length,
   };
 }
