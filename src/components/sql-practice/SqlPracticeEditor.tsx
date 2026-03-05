@@ -87,6 +87,44 @@ type LeftTab = (typeof LEFT_TABS)[number];
 
 type ResultTab = "testcase" | "result";
 
+/**
+ * Rewrite MySQL-specific syntax that SQLite / sql.js can't parse natively.
+ * - TIMESTAMPDIFF(UNIT, d1, d2) → _TSDIFF_UNIT(d1, d2)
+ * - DATE_ADD(d, INTERVAL n UNIT)  → _DATE_ADD_UNIT(d, n)
+ * - DATE_SUB(d, INTERVAL n UNIT)  → _DATE_SUB_UNIT(d, n)
+ * - DATE_FORMAT(d, fmt)           → _DATE_FORMAT(d, fmt) (registered separately)
+ * - IFNULL(a, b) is natively supported by SQLite, but alias just in case.
+ */
+function rewriteMySqlSyntax(query: string): string {
+  let q = query;
+
+  q = q.replace(
+    /TIMESTAMPDIFF\s*\(\s*(YEAR|MONTH|DAY|HOUR|MINUTE|SECOND)\s*,/gi,
+    (_match, unit: string) => `_TSDIFF_${unit.toUpperCase()}(`,
+  );
+
+  q = q.replace(
+    /DATE_ADD\s*\(\s*([^,]+?)\s*,\s*INTERVAL\s+(.+?)\s+(YEAR|MONTH|DAY|HOUR|MINUTE|SECOND)\s*\)/gi,
+    (_match, dateExpr: string, amount: string, unit: string) =>
+      `_DATE_ADD_${unit.toUpperCase()}(${dateExpr}, ${amount})`,
+  );
+
+  q = q.replace(
+    /DATE_SUB\s*\(\s*([^,]+?)\s*,\s*INTERVAL\s+(.+?)\s+(YEAR|MONTH|DAY|HOUR|MINUTE|SECOND)\s*\)/gi,
+    (_match, dateExpr: string, amount: string, unit: string) =>
+      `_DATE_SUB_${unit.toUpperCase()}(${dateExpr}, ${amount})`,
+  );
+
+  q = q.replace(/DATE_FORMAT\s*\(/gi, "_DATE_FORMAT(");
+
+  return q;
+}
+
+function _dateParse(d: unknown): Date | null {
+  const dt = new Date(String(d));
+  return Number.isNaN(dt.getTime()) ? null : dt;
+}
+
 /** Register MySQL-compatible functions so users can write MySQL syntax. */
 function registerMySqlCompat(db: { create_function: (name: string, fn: (...args: unknown[]) => unknown) => void }) {
   db.create_function("DATEDIFF", (d1: unknown, d2: unknown) => {
@@ -95,17 +133,97 @@ function registerMySqlCompat(db: { create_function: (name: string, fn: (...args:
     if (Number.isNaN(a) || Number.isNaN(b)) return null;
     return Math.round((a - b) / 86400000);
   });
+
+  db.create_function("_TSDIFF_DAY", (d1: unknown, d2: unknown) => {
+    const a = new Date(String(d1)).getTime();
+    const b = new Date(String(d2)).getTime();
+    if (Number.isNaN(a) || Number.isNaN(b)) return null;
+    return Math.round((b - a) / 86400000);
+  });
+  db.create_function("_TSDIFF_MONTH", (d1: unknown, d2: unknown) => {
+    const a = _dateParse(d1);
+    const b = _dateParse(d2);
+    if (!a || !b) return null;
+    return (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+  });
+  db.create_function("_TSDIFF_YEAR", (d1: unknown, d2: unknown) => {
+    const a = _dateParse(d1);
+    const b = _dateParse(d2);
+    if (!a || !b) return null;
+    return b.getFullYear() - a.getFullYear();
+  });
+  db.create_function("_TSDIFF_HOUR", (d1: unknown, d2: unknown) => {
+    const a = new Date(String(d1)).getTime();
+    const b = new Date(String(d2)).getTime();
+    if (Number.isNaN(a) || Number.isNaN(b)) return null;
+    return Math.round((b - a) / 3600000);
+  });
+  db.create_function("_TSDIFF_MINUTE", (d1: unknown, d2: unknown) => {
+    const a = new Date(String(d1)).getTime();
+    const b = new Date(String(d2)).getTime();
+    if (Number.isNaN(a) || Number.isNaN(b)) return null;
+    return Math.round((b - a) / 60000);
+  });
+  db.create_function("_TSDIFF_SECOND", (d1: unknown, d2: unknown) => {
+    const a = new Date(String(d1)).getTime();
+    const b = new Date(String(d2)).getTime();
+    if (Number.isNaN(a) || Number.isNaN(b)) return null;
+    return Math.round((b - a) / 1000);
+  });
+
+  const addUnit = (d: unknown, n: unknown, unit: "year" | "month" | "day" | "hour" | "minute" | "second") => {
+    const dt = _dateParse(d);
+    if (!dt) return null;
+    const amt = Number(n);
+    const out = new Date(dt);
+    if (unit === "year") out.setFullYear(out.getFullYear() + amt);
+    else if (unit === "month") out.setMonth(out.getMonth() + amt);
+    else if (unit === "day") out.setDate(out.getDate() + amt);
+    else if (unit === "hour") out.setHours(out.getHours() + amt);
+    else if (unit === "minute") out.setMinutes(out.getMinutes() + amt);
+    else if (unit === "second") out.setSeconds(out.getSeconds() + amt);
+    return out.toISOString().slice(0, unit === "day" || unit === "month" || unit === "year" ? 10 : 19).replace("T", " ");
+  };
+  db.create_function("_DATE_ADD_DAY", (d: unknown, n: unknown) => addUnit(d, n, "day"));
+  db.create_function("_DATE_ADD_MONTH", (d: unknown, n: unknown) => addUnit(d, n, "month"));
+  db.create_function("_DATE_ADD_YEAR", (d: unknown, n: unknown) => addUnit(d, n, "year"));
+  db.create_function("_DATE_ADD_HOUR", (d: unknown, n: unknown) => addUnit(d, n, "hour"));
+  db.create_function("_DATE_ADD_MINUTE", (d: unknown, n: unknown) => addUnit(d, n, "minute"));
+  db.create_function("_DATE_ADD_SECOND", (d: unknown, n: unknown) => addUnit(d, n, "second"));
+  db.create_function("_DATE_SUB_DAY", (d: unknown, n: unknown) => addUnit(d, Number(n) * -1, "day"));
+  db.create_function("_DATE_SUB_MONTH", (d: unknown, n: unknown) => addUnit(d, Number(n) * -1, "month"));
+  db.create_function("_DATE_SUB_YEAR", (d: unknown, n: unknown) => addUnit(d, Number(n) * -1, "year"));
+  db.create_function("_DATE_SUB_HOUR", (d: unknown, n: unknown) => addUnit(d, Number(n) * -1, "hour"));
+  db.create_function("_DATE_SUB_MINUTE", (d: unknown, n: unknown) => addUnit(d, Number(n) * -1, "minute"));
+  db.create_function("_DATE_SUB_SECOND", (d: unknown, n: unknown) => addUnit(d, Number(n) * -1, "second"));
+
+  db.create_function("_DATE_FORMAT", (d: unknown, fmt: unknown) => {
+    const dt = _dateParse(d);
+    if (!dt) return null;
+    let f = String(fmt);
+    f = f.replace(/%Y/g, String(dt.getFullYear()));
+    f = f.replace(/%m/g, String(dt.getMonth() + 1).padStart(2, "0"));
+    f = f.replace(/%d/g, String(dt.getDate()).padStart(2, "0"));
+    f = f.replace(/%H/g, String(dt.getHours()).padStart(2, "0"));
+    f = f.replace(/%i/g, String(dt.getMinutes()).padStart(2, "0"));
+    f = f.replace(/%s/g, String(dt.getSeconds()).padStart(2, "0"));
+    f = f.replace(/%M/g, dt.toLocaleString("en-US", { month: "long" }));
+    f = f.replace(/%b/g, dt.toLocaleString("en-US", { month: "short" }));
+    f = f.replace(/%W/g, dt.toLocaleString("en-US", { weekday: "long" }));
+    return f;
+  });
+
   db.create_function("YEAR", (d: unknown) => {
-    const dt = new Date(String(d));
-    return Number.isNaN(dt.getTime()) ? null : dt.getFullYear();
+    const dt = _dateParse(d);
+    return dt ? dt.getFullYear() : null;
   });
   db.create_function("MONTH", (d: unknown) => {
-    const dt = new Date(String(d));
-    return Number.isNaN(dt.getTime()) ? null : dt.getMonth() + 1;
+    const dt = _dateParse(d);
+    return dt ? dt.getMonth() + 1 : null;
   });
   db.create_function("DAY", (d: unknown) => {
-    const dt = new Date(String(d));
-    return Number.isNaN(dt.getTime()) ? null : dt.getDate();
+    const dt = _dateParse(d);
+    return dt ? dt.getDate() : null;
   });
   db.create_function("IF", (cond: unknown, t: unknown, f: unknown) => (cond ? t : f));
   db.create_function("CONCAT", (...args: unknown[]) => args.map(String).join(""));
@@ -238,7 +356,7 @@ export function SqlPracticeEditor({
       try {
         db.exec(schemaSql);
         db.exec(seedSql);
-        const execResult = db.exec(code);
+        const execResult = db.exec(rewriteMySqlSyntax(code));
         db.close();
         if (!Array.isArray(execResult) || execResult.length === 0) {
           setRunOutput({ type: "result", rows: [] });
@@ -329,7 +447,7 @@ export function SqlPracticeEditor({
       try {
         db.exec(schemaSql);
         db.exec(seedSql);
-        const execResult = db.exec(code);
+        const execResult = db.exec(rewriteMySqlSyntax(code));
         if (Array.isArray(execResult) && execResult.length > 0) {
           const resultSet =
             execResult.find((r) => {
