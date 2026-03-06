@@ -17,8 +17,10 @@ function getLocalDateString(): string {
 
 export function SuggestedPlan({ items = [] }: { items?: SuggestedItem[] }) {
   const router = useRouter();
+  const [removedTagIds, setRemovedTagIds] = useState<Set<string>>(new Set());
   const [pendingTagId, setPendingTagId] = useState<string | null>(null);
-  const list = Array.isArray(items) ? items : [];
+  const rawList = Array.isArray(items) ? items : [];
+  const list = rawList.filter((item) => !removedTagIds.has(item.tagId));
   const forDate = getLocalDateString();
 
   async function handleAddToToday(e: React.FormEvent<HTMLFormElement>) {
@@ -30,13 +32,15 @@ export function SuggestedPlan({ items = [] }: { items?: SuggestedItem[] }) {
     try {
       const result = await addSuggestedToTodayAction(formData);
       if (result.ok) {
+        setRemovedTagIds((prev) => new Set(prev).add(tagId));
+        window.dispatchEvent(new Event("plan-today-refresh"));
         router.refresh();
-        router.replace("/plan?success=added", { scroll: false });
       }
     } finally {
       setPendingTagId(null);
     }
   }
+
   if (list.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-neutral-200 bg-neutral-50/50 px-4 py-6 dark:border-neutral-700 dark:bg-neutral-800/30">

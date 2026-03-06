@@ -22,11 +22,20 @@ function getLocalDateString(): string {
 
 export function PlanTodayList() {
   const [tasks, setTasks] = useState<PlanTodayTask[] | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   const searchParams = useSearchParams();
 
   useEffect(() => {
     getPlanTodayTasksAction(getLocalDateString()).then(setTasks);
-  }, [searchParams]);
+  }, [searchParams, refreshKey]);
+
+  useEffect(() => {
+    function handleRefresh() {
+      setRefreshKey((k) => k + 1);
+    }
+    window.addEventListener("plan-today-refresh", handleRefresh);
+    return () => window.removeEventListener("plan-today-refresh", handleRefresh);
+  }, []);
 
   if (tasks === null) {
     return (
