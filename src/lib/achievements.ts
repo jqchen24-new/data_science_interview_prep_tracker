@@ -176,6 +176,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
 ];
 
 async function getAchievementStats(userId: string): Promise<AchievementStats> {
+  const prismaAny = prisma as typeof prisma & { sqlAttempt?: { findMany: (args: unknown) => Promise<{ questionId: string }[]> } };
   const [completedTasks, totalMinutesResult, sqlSolved, totalTags, weekTagIds, streakData] =
     await Promise.all([
       prisma.task.count({ where: { userId, completedAt: { not: null } } }),
@@ -185,11 +186,13 @@ async function getAchievementStats(userId: string): Promise<AchievementStats> {
         _sum: { durationMinutes: true },
       }),
 
-      prisma.sqlAttempt.findMany({
-        where: { userId, passed: true },
-        select: { questionId: true },
-        distinct: ["questionId"],
-      }),
+      prismaAny.sqlAttempt
+        ? prismaAny.sqlAttempt.findMany({
+            where: { userId, passed: true },
+            select: { questionId: true },
+            distinct: ["questionId"],
+          })
+        : Promise.resolve([]),
 
       prisma.tag.count({ where: { userId } }),
 
