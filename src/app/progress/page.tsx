@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +18,9 @@ export default async function ProgressPage() {
     const { getProgressStats } = await import("@/lib/progress");
     debugInfo = "imported progress";
 
+    const tzOffset = (await cookies()).get("tzOffset")?.value ?? null;
     debugInfo = "fetching stats";
-    const stats = await getProgressStats(userId);
+    const stats = await getProgressStats(userId, tzOffset);
     debugInfo = "stats ok: " + JSON.stringify(Object.keys(stats));
 
     let achievements: unknown[] = [];

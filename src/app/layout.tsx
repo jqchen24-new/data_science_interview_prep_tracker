@@ -10,6 +10,7 @@ import { Footer } from "@/components/layout/Footer";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { OnboardingGate } from "@/components/OnboardingGate";
 import { ReminderScheduler } from "@/components/layout/ReminderScheduler";
+import { TimezoneCookie } from "@/components/layout/TimezoneCookie";
 
 export async function generateMetadata(): Promise<Metadata> {
   const session = await auth();
@@ -59,6 +60,7 @@ export default async function RootLayout({
           </OnboardingGate>
         </SessionProvider>
         <ReminderScheduler enabled={reminderEnabled} time={reminderTime} />
+        <TimezoneCookie />
         <Analytics />
       </body>
     </html>

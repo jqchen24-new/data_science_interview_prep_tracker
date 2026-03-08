@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getProgressStats, getWeeklyInsights } from "@/lib/progress";
 import { DashboardTodayCardClient } from "@/components/dashboard/DashboardTodayCardClient";
@@ -41,10 +42,12 @@ export default async function DashboardPage() {
   let insightsData: Awaited<ReturnType<typeof getWeeklyInsights>> | null = null;
   let loadError: string | null = null;
 
+  const tzOffset = (await cookies()).get("tzOffset")?.value ?? null;
+
   try {
     [stats, insightsData] = await Promise.all([
-      getProgressStats(userId),
-      getWeeklyInsights(userId),
+      getProgressStats(userId, tzOffset),
+      getWeeklyInsights(userId, tzOffset),
     ]);
   } catch (e) {
     loadError = e instanceof Error ? e.message : "Failed to load dashboard data";

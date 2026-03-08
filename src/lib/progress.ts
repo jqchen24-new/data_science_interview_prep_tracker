@@ -1,6 +1,25 @@
 import { prisma } from "./db";
 
-export async function getProgressStats(userId: string) {
+/**
+ * Get start of current week (Sunday 00:00:00) in the user's local timezone.
+ * tzOffsetMinutes = getTimezoneOffset() from the client (minutes to add to local to get UTC).
+ */
+function getWeekStartInUserTz(tzOffsetMinutes: number): Date {
+  const now = Date.now();
+  const localMoment = new Date(now - tzOffsetMinutes * 60000);
+  const localDate = localMoment.getUTCDate();
+  const localDay = localMoment.getUTCDay();
+  const weekStartLocal = new Date(localMoment);
+  weekStartLocal.setUTCDate(localDate - localDay);
+  weekStartLocal.setUTCHours(0, 0, 0, 0);
+  weekStartLocal.setUTCMinutes(0, 0, 0);
+  return new Date(weekStartLocal.getTime() + tzOffsetMinutes * 60000);
+}
+
+export async function getProgressStats(
+  userId: string,
+  tzOffsetMinutesCookie?: string | null
+) {
   const tasks = await prisma.task.findMany({
     where: { userId, completedAt: { not: null } },
     include: { tags: { include: { tag: true } } },
@@ -44,21 +63,24 @@ export async function getProgressStats(userId: string) {
     }
   }
 
-  const weekStart = new Date();
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-  weekStart.setHours(0, 0, 0, 0);
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + 6);
-  weekEnd.setHours(23, 59, 59, 999);
+  const tzOffset = tzOffsetMinutesCookie != null ? parseInt(tzOffsetMinutesCookie, 10) : NaN;
+  const useLocalTz = !Number.isNaN(tzOffset) && Math.abs(tzOffset) <= 60 * 14;
+
+  const weekStart = useLocalTz
+    ? getWeekStartInUserTz(tzOffset)
+    : (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - d.getDay());
+        d.setHours(0, 0, 0, 0);
+        return d;
+      })();
+  const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
   const weekMinutes = tasks
     .filter((t) => t.completedAt && t.completedAt >= weekStart && t.completedAt <= weekEnd)
     .reduce((sum, t) => sum + (t.durationMinutes ?? 30), 0);
 
-  const lastWeekStart = new Date(weekStart);
-  lastWeekStart.setDate(lastWeekStart.getDate() - 7);
-  const lastWeekEnd = new Date(lastWeekStart);
-  lastWeekEnd.setDate(lastWeekEnd.getDate() + 6);
-  lastWeekEnd.setHours(23, 59, 59, 999);
+  const lastWeekStart = new Date(weekStart.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const lastWeekEnd = new Date(lastWeekStart.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
   const lastWeekMinutes = tasks
     .filter(
       (t) =>
@@ -70,11 +92,8 @@ export async function getProgressStats(userId: string) {
 
   const weeklyData: { week: string; minutes: number }[] = [];
   for (let i = 3; i >= 0; i--) {
-    const ws = new Date(weekStart);
-    ws.setDate(ws.getDate() - 7 * i);
-    const we = new Date(ws);
-    we.setDate(we.getDate() + 6);
-    we.setHours(23, 59, 59, 999);
+    const ws = new Date(weekStart.getTime() - 7 * i * 24 * 60 * 60 * 1000);
+    const we = new Date(ws.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
     const mins = tasks
       .filter(
         (t) => t.completedAt && t.completedAt >= ws && t.completedAt <= we
@@ -109,12 +128,15 @@ export type WeeklyInsight = {
   text: string;
 };
 
-export async function getWeeklyInsights(userId: string): Promise<{
+export async function getWeeklyInsights(
+  userId: string,
+  tzOffsetMinutesCookie?: string | null
+): Promise<{
   insights: WeeklyInsight[];
   achievementCount: number;
   achievementTotal: number;
 }> {
-  const stats = await getProgressStats(userId);
+  const stats = await getProgressStats(userId, tzOffsetMinutesCookie);
   const insights: WeeklyInsight[] = [];
 
   // Study time comparison
@@ -146,9 +168,16 @@ export async function getWeeklyInsights(userId: string): Promise<{
   }
 
   // SQL solved this week (optional: main branch has no SqlAttempt model)
-  const weekStart = new Date();
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-  weekStart.setHours(0, 0, 0, 0);
+  const tzOffset = tzOffsetMinutesCookie != null ? parseInt(tzOffsetMinutesCookie, 10) : NaN;
+  const useLocalTz = !Number.isNaN(tzOffset) && Math.abs(tzOffset) <= 60 * 14;
+  const weekStart = useLocalTz
+    ? getWeekStartInUserTz(tzOffset)
+    : (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - d.getDay());
+        d.setHours(0, 0, 0, 0);
+        return d;
+      })();
 
   const prismaAny = prisma as typeof prisma & { sqlAttempt?: { findMany: (args: unknown) => Promise<{ questionId: string }[]> } };
   const sqlSolvedThisWeek = prismaAny.sqlAttempt
