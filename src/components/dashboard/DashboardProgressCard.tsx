@@ -23,6 +23,7 @@ type WeekPoint = { week: string; minutes: number };
 type Props = {
   weekMinutes: number;
   lastWeekMinutes: number;
+  lastWeekSamePeriodMinutes?: number;
   totalMinutes: number;
   streak: number;
   byTag?: TagStat[];
@@ -34,6 +35,7 @@ type Props = {
 export function DashboardProgressCard({
   weekMinutes,
   lastWeekMinutes,
+  lastWeekSamePeriodMinutes,
   totalMinutes,
   streak,
   byTag = [],
@@ -44,7 +46,8 @@ export function DashboardProgressCard({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const weekDiff = weekMinutes - lastWeekMinutes;
+  const compareTo = lastWeekSamePeriodMinutes ?? lastWeekMinutes;
+  const weekDiff = weekMinutes - compareTo;
   const topTag = byTag[0];
   const pieData = byTag.slice(0, 5).map((t, i) => ({
     name: t.name,
@@ -65,7 +68,7 @@ export function DashboardProgressCard({
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
               This week
             </p>
-            {lastWeekMinutes > 0 && (
+            {compareTo > 0 && (
               <p
                 className={`mt-0.5 text-xs font-medium ${
                   weekDiff >= 0
@@ -74,7 +77,7 @@ export function DashboardProgressCard({
                 }`}
               >
                 {weekDiff >= 0 ? "+" : ""}
-                {weekDiff} min from last week
+                {weekDiff} min vs. same period last week
               </p>
             )}
           </div>

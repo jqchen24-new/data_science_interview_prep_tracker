@@ -90,6 +90,23 @@ export async function getProgressStats(
     )
     .reduce((sum, t) => sum + (t.durationMinutes ?? 30), 0);
 
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  const daysElapsedThisWeek = Math.min(
+    7,
+    Math.floor((Date.now() - weekStart.getTime()) / oneDayMs) + 1
+  );
+  const lastWeekSamePeriodEnd = new Date(
+    lastWeekStart.getTime() + daysElapsedThisWeek * oneDayMs - 1
+  );
+  const lastWeekSamePeriodMinutes = tasks
+    .filter(
+      (t) =>
+        t.completedAt &&
+        t.completedAt >= lastWeekStart &&
+        t.completedAt <= lastWeekSamePeriodEnd
+    )
+    .reduce((sum, t) => sum + (t.durationMinutes ?? 30), 0);
+
   const weeklyData: { week: string; minutes: number }[] = [];
   for (let i = 3; i >= 0; i--) {
     const ws = new Date(weekStart.getTime() - 7 * i * 24 * 60 * 60 * 1000);
@@ -114,6 +131,7 @@ export async function getProgressStats(
     totalMinutes,
     weekMinutes,
     lastWeekMinutes,
+    lastWeekSamePeriodMinutes,
     weeklyData,
     byTag,
     streak,
@@ -139,25 +157,26 @@ export async function getWeeklyInsights(
   const stats = await getProgressStats(userId, tzOffsetMinutesCookie);
   const insights: WeeklyInsight[] = [];
 
-  // Study time comparison
-  if (stats.lastWeekMinutes > 0) {
+  // Study time comparison: this week so far vs. same number of days last week (fair at start of week)
+  const lastPeriod = stats.lastWeekSamePeriodMinutes ?? stats.lastWeekMinutes;
+  if (lastPeriod > 0) {
     const pct = Math.round(
-      ((stats.weekMinutes - stats.lastWeekMinutes) / stats.lastWeekMinutes) * 100
+      ((stats.weekMinutes - lastPeriod) / lastPeriod) * 100
     );
     if (pct > 0) {
       insights.push({
         type: "positive",
-        text: `You studied ${pct}% more than last week`,
+        text: `You studied ${pct}% more than the same period last week`,
       });
     } else if (pct < 0) {
       insights.push({
         type: "warning",
-        text: `Study time dropped ${Math.abs(pct)}% from last week`,
+        text: `Study time ${Math.abs(pct)}% below the same period last week`,
       });
     } else {
       insights.push({
         type: "neutral",
-        text: "Same study time as last week — keep it consistent!",
+        text: "Same study time as this period last week — keep it up!",
       });
     }
   } else if (stats.weekMinutes > 0) {
