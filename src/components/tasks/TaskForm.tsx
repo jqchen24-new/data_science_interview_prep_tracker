@@ -26,8 +26,11 @@ export function TaskForm({
 }) {
   const [state, formAction] = useActionState<{ error: string | null }, FormData>(
     async (_, formData) => {
-      const result = await createTaskAction(formData);
-      return result;
+      const raw = formData.get("scheduledAt");
+      if (raw && typeof raw === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(raw)) {
+        formData.set("scheduledAt", new Date(raw).toISOString());
+      }
+      return createTaskAction(formData);
     },
     { error: null }
   );
