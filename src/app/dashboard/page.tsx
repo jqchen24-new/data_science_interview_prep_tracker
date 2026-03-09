@@ -100,6 +100,7 @@ export default async function DashboardPage() {
         <DashboardProgressCard
           weekMinutes={stats.weekMinutes}
           lastWeekMinutes={stats.lastWeekMinutes}
+          lastWeekSamePeriodMinutes={stats.lastWeekSamePeriodMinutes}
           totalMinutes={stats.totalMinutes}
           streak={stats.streak}
           byTag={stats.byTag}
