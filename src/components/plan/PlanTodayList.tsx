@@ -20,14 +20,14 @@ function getLocalDateString(): string {
   return `${y}-${m}-${day}`;
 }
 
-export function PlanTodayList() {
+export function PlanTodayList({ tzOffset = null }: { tzOffset?: string | null }) {
   const [tasks, setTasks] = useState<PlanTodayTask[] | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    getPlanTodayTasksAction(getLocalDateString()).then(setTasks);
-  }, [searchParams, refreshKey]);
+    getPlanTodayTasksAction(getLocalDateString(), tzOffset).then(setTasks);
+  }, [searchParams, refreshKey, tzOffset]);
 
   useEffect(() => {
     function handleRefresh() {
