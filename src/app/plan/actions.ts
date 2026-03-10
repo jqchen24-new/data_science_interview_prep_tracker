@@ -43,13 +43,36 @@ export async function addSuggestedToTodayAction(formData: FormData): Promise<Add
   return { ok: true };
 }
 
-/** Fetch tasks scheduled for the given date (YYYY-MM-DD, interpreted as UTC day). */
-export async function getPlanTodayTasksAction(dateStr: string): Promise<PlanTodayTask[]> {
+/**
+ * Fetch tasks scheduled for the given date (YYYY-MM-DD).
+ * If tzOffsetMinutes is provided (getTimezoneOffset from client), the date is interpreted as the user's local day.
+ * Otherwise it is interpreted as UTC day (fallback).
+ */
+export async function getPlanTodayTasksAction(
+  dateStr: string,
+  tzOffsetMinutes?: string | null
+): Promise<PlanTodayTask[]> {
   const session = await auth();
   if (!session?.user?.id) return [];
   if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return [];
-  const start = new Date(`${dateStr}T00:00:00.000Z`);
-  const end = new Date(`${dateStr}T23:59:59.999Z`);
+
+  const tzNum = tzOffsetMinutes != null ? parseInt(tzOffsetMinutes, 10) : NaN;
+  const useTz = !Number.isNaN(tzNum) && Math.abs(tzNum) <= 60 * 14;
+
+  let start: Date;
+  let end: Date;
+  if (useTz) {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const startUtcMs =
+      Date.UTC(y, m - 1, d, 0, 0, 0, 0) + tzNum * 60 * 1000;
+    const endUtcMs =
+      Date.UTC(y, m - 1, d, 23, 59, 59, 999) + tzNum * 60 * 1000;
+    start = new Date(startUtcMs);
+    end = new Date(endUtcMs);
+  } else {
+    start = new Date(`${dateStr}T00:00:00.000Z`);
+    end = new Date(`${dateStr}T23:59:59.999Z`);
+  }
   return getTasks(session.user.id, { from: start, to: end });
 }
 

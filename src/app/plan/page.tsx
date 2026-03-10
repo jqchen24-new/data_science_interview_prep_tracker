@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getSuggestedPlanForDate } from "@/lib/tasks";
 import type { SuggestedItem } from "@/lib/tasks";
@@ -31,6 +32,7 @@ export default async function PlanPage() {
   const userId = session?.user?.id;
   if (!userId) return null;
 
+  const tzOffset = (await cookies()).get("tzOffset")?.value ?? null;
   const { suggested, error } = await loadPlanData(userId);
 
   return (
@@ -79,7 +81,7 @@ export default async function PlanPage() {
 
       <Card>
         <CardTitle>Today’s plan</CardTitle>
-        <PlanTodayList />
+        <PlanTodayList tzOffset={tzOffset} />
       </Card>
     </div>
   );
