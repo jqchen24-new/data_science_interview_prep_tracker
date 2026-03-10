@@ -27,20 +27,20 @@ export async function getProgressStats(
 
   const UNTAGGED_ID = "__untagged__";
   let totalMinutes = 0;
-  const byTagId = new Map<string, { name: string; slug: string; minutes: number; count: number }>();
+  const byTagId = new Map<string, { tagId: string; name: string; slug: string; minutes: number; count: number }>();
 
   for (const task of tasks) {
     const mins = task.durationMinutes ?? 30;
     totalMinutes += mins;
     if (task.tags.length === 0) {
-      const cur = byTagId.get(UNTAGGED_ID) ?? { name: "Untagged", slug: "untagged", minutes: 0, count: 0 };
+      const cur = byTagId.get(UNTAGGED_ID) ?? { tagId: UNTAGGED_ID, name: "Untagged", slug: "untagged", minutes: 0, count: 0 };
       cur.minutes += mins;
       cur.count += 1;
       byTagId.set(UNTAGGED_ID, cur);
     } else {
       for (const tt of task.tags) {
         const t = tt.tag;
-        const cur = byTagId.get(t.id) ?? { name: t.name, slug: t.slug, minutes: 0, count: 0 };
+        const cur = byTagId.get(t.id) ?? { tagId: t.id, name: t.name, slug: t.slug, minutes: 0, count: 0 };
         cur.minutes += mins;
         cur.count += 1;
         byTagId.set(t.id, cur);

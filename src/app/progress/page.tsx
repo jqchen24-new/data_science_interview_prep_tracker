@@ -37,7 +37,7 @@ export default async function ProgressPage() {
 
     const { Card, CardTitle } = await import("@/components/ui/Card");
     const { ProgressStats } = await import("@/components/progress/ProgressStats");
-    const { ProgressChartSection } = await import("@/components/progress/ProgressChartSection");
+    const { ProgressChartWithTasks } = await import("@/components/progress/ProgressChartWithTasks");
 
     const hasNoData = stats.totalMinutes === 0 && stats.completedCount === 0;
 
@@ -78,7 +78,10 @@ export default async function ProgressPage() {
 
         <Card>
           <CardTitle>Time by tag</CardTitle>
-          <ProgressChartSection data={stats.byTag} />
+          <p className="mb-3 text-sm text-neutral-500 dark:text-neutral-400">
+            Click a bar to see completed tasks for that tag.
+          </p>
+          <ProgressChartWithTasks data={stats.byTag} />
         </Card>
       </div>
     );
