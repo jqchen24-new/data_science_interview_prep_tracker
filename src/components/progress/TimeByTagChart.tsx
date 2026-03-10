@@ -10,18 +10,27 @@ import {
   Cell,
 } from "recharts";
 
-export type TagStat = { name: string; slug: string; minutes: number; count: number };
+export type TagStat = {
+  tagId?: string;
+  name: string;
+  slug: string;
+  minutes: number;
+  count: number;
+};
 
-export type TimeByTagChartProps = { data?: TagStat[] };
+export type TimeByTagChartProps = {
+  data?: TagStat[];
+  onTagClick?: (tagId: string, tagName: string) => void;
+};
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#6b7280"];
 
-export function TimeByTagChart({ data = [] }: TimeByTagChartProps) {
+export function TimeByTagChart({ data = [], onTagClick }: TimeByTagChartProps) {
   const safeData = Array.isArray(data) ? data : [];
   if (safeData.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
-        No data yet. Complete some sessions to see time by tag.
+        No data yet. Complete sessions to see time by tag.
       </p>
     );
   }
@@ -29,6 +38,8 @@ export function TimeByTagChart({ data = [] }: TimeByTagChartProps) {
   const chartData = safeData.map((d) => ({
     name: d.name ?? "?",
     minutes: Number(d.minutes) || 0,
+    tagId: d.tagId ?? "__untagged__",
+    tagName: d.name ?? "?",
   }));
 
   return (
@@ -51,7 +62,20 @@ export function TimeByTagChart({ data = [] }: TimeByTagChartProps) {
             formatter={(value: number) => [`${value} min`, "Minutes"]}
             labelFormatter={(label) => label}
           />
-          <Bar dataKey="minutes" radius={[0, 4, 4, 0]}>
+          <Bar
+            dataKey="minutes"
+            radius={[0, 4, 4, 0]}
+            cursor={onTagClick ? "pointer" : undefined}
+            onClick={
+              onTagClick
+                ? (data: { tagId?: string; tagName?: string }) => {
+                    if (data?.tagId != null) {
+                      onTagClick(data.tagId, data.tagName ?? "?");
+                    }
+                  }
+                : undefined
+            }
+          >
             {chartData.map((_, i) => (
               <Cell key={i} fill={COLORS[i % COLORS.length]} />
             ))}

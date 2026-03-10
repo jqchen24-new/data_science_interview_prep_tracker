@@ -51,6 +51,8 @@ model User {
   tasks           Task[]
   applications    Application[]
   tags            Tag[]
+  sqlAttempts      SqlAttempt[]
+  sqlSuggestions   SqlSuggestion[]
   achievements     UserAchievement[]
 }
 
@@ -109,6 +111,50 @@ model Application {
   updatedAt          DateTime  @updatedAt
   userId             String
   user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// SQL Practice (curated questions, per-user attempts)
+model SqlQuestion {
+  id               String     @id @default(cuid())
+  slug             String     @unique
+  title            String
+  problemStatement String     // markdown
+  schemaSql        String     // DDL
+  seedSql          String     // INSERTs / extra DDL
+  expectedResult   Json       // array of row objects for comparison
+  difficulty       String?    // easy, medium, hard
+  order            Int        @default(0)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  attempts         SqlAttempt[]
+}
+
+model SqlAttempt {
+  id           String     @id @default(cuid())
+  userId       String
+  questionId   String
+  submittedSql String
+  passed       Boolean
+  runResult    Json?      // optional rows for debugging
+  aiFeedback   String?
+  createdAt    DateTime   @default(now())
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question     SqlQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, questionId])
+}
+
+model SqlSuggestion {
+  id          String   @id @default(cuid())
+  userId      String
+  topic       String
+  difficulty  String
+  description String
+  status      String   @default("pending") // pending, reviewed, accepted, dismissed
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model UserAchievement {

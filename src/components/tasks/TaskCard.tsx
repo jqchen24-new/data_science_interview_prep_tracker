@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { Task } from "@/app/tasks/actions";
 
 type TaskWithTags = Task & { tags: { tag: { id: string; name: string; slug: string } }[] };
@@ -20,10 +22,15 @@ export function TaskCard({
   onDelete: (id: string) => void;
   editPathPrefix?: string;
 }) {
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const completed = !!task.completedAt;
   const scheduled = new Date(task.scheduledAt);
   const timeStr = scheduled.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   const dateStr = scheduled.toLocaleDateString();
+
+  const handleConfirmDelete = () => {
+    onDelete(task.id);
+  };
 
   return (
     <div
@@ -71,11 +78,19 @@ export function TaskCard({
               </Button>
             </Link>
           )}
-          <Button variant="ghost" onClick={() => onDelete(task.id)}>
+          <Button variant="ghost" onClick={() => setDeleteConfirmOpen(true)}>
             Delete
           </Button>
         </div>
       </div>
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete task?"
+        description="This cannot be undone."
+        confirmLabel="Delete"
+      />
     </div>
   );
 }

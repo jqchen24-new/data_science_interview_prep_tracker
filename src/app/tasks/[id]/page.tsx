@@ -22,10 +22,7 @@ export default async function TaskEditPage({
   const [task, tags] = await Promise.all([getTaskById(userId, id), getAllTags(userId)]);
   if (!task) notFound();
 
-  const scheduled = new Date(task.scheduledAt);
-  const scheduledStr = new Date(scheduled.getTime() - scheduled.getTimezoneOffset() * 60000)
-    .toISOString()
-    .slice(0, 16);
+  const scheduledAtIso = new Date(task.scheduledAt).toISOString();
 
   return (
     <div className="space-y-6">
@@ -42,7 +39,7 @@ export default async function TaskEditPage({
         tagOptions={tags}
         initialTitle={task.title}
         initialDuration={task.durationMinutes?.toString() ?? ""}
-        initialScheduled={scheduledStr}
+        initialScheduledAtIso={scheduledAtIso}
         initialTagIds={task.tags.map((tt) => tt.tagId)}
       />
     </div>

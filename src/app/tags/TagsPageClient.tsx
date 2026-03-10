@@ -4,7 +4,8 @@ import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
-import { createTagAction, updateTagAction, deleteTagAction } from "@/app/tags/actions";
+import { createTagAction, updateTagAction } from "@/app/tags/actions";
+import { TagDeleteButton } from "./TagDeleteButton";
 
 type Tag = { id: string; name: string; slug: string };
 
@@ -85,12 +86,7 @@ export function TagsPageClient({
                     >
                       <Badge>{tag.name}</Badge>
                     </button>
-                    <form action={deleteTagAction} className="inline">
-                      <input type="hidden" name="id" value={tag.id} />
-                      <Button type="submit" variant="ghost" className="!py-0 !px-1 text-neutral-500 hover:text-red-600">
-                        ×
-                      </Button>
-                    </form>
+                    <TagDeleteButton tagId={tag.id} tagName={tag.name} />
                   </>
                 )}
               </span>

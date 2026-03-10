@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -8,22 +8,34 @@ import { updateTaskAction } from "@/app/tasks/actions";
 
 type Tag = { id: string; name: string; slug: string };
 
+function toLocalDatetimeLocal(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const h = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${y}-${m}-${day}T${h}:${min}`;
+}
+
 export function EditTaskForm({
   taskId,
   tagOptions,
   initialTitle,
   initialDuration,
-  initialScheduled,
+  initialScheduledAtIso,
   initialTagIds,
 }: {
   taskId: string;
   tagOptions: Tag[];
   initialTitle: string;
   initialDuration: string;
-  initialScheduled: string;
+  initialScheduledAtIso: string;
   initialTagIds: string[];
 }) {
   const router = useRouter();
+  const [scheduledValue, setScheduledValue] = useState("");
   const [state, formAction] = useActionState<{ error: string | null }, FormData>(
     async (_, formData) => {
       const raw = formData.get("scheduledAt");
@@ -34,6 +46,10 @@ export function EditTaskForm({
     },
     { error: null }
   );
+
+  useEffect(() => {
+    setScheduledValue(toLocalDatetimeLocal(initialScheduledAtIso));
+  }, [initialScheduledAtIso]);
 
   return (
     <form
@@ -55,7 +71,8 @@ export function EditTaskForm({
           name="scheduledAt"
           type="datetime-local"
           required
-          defaultValue={initialScheduled}
+          value={scheduledValue}
+          onChange={(e) => setScheduledValue(e.target.value)}
         />
         <Input
           label="Duration (minutes)"

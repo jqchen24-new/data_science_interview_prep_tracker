@@ -65,8 +65,9 @@ export default async function ApplicationsPage({
         </div>
       )}
 
-      <Card>
-        <CardTitle>Add application</CardTitle>
+      <div id="add-application-form">
+        <Card>
+          <CardTitle>Add application</CardTitle>
         <form action={createApplicationAction} className="flex flex-col gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <Input label="Company" name="company" required placeholder="Acme Inc." />
@@ -125,7 +126,8 @@ export default async function ApplicationsPage({
           </div>
           <Button type="submit">Add application</Button>
         </form>
-      </Card>
+        </Card>
+      </div>
 
       <Card>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">

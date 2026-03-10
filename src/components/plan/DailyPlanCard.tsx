@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { Task } from "@/app/tasks/actions";
 import Link from "next/link";
 
@@ -18,6 +20,7 @@ export function DailyPlanCard({
   onUncomplete: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const completed = !!task.completedAt;
   const scheduled = task.scheduledAt ? new Date(task.scheduledAt) : new Date();
   const timeStr = Number.isNaN(scheduled.getTime()) ? "–" : scheduled.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -60,10 +63,18 @@ export function DailyPlanCard({
         <Link href={`/tasks/${task.id}`}>
           <Button variant="ghost">Edit</Button>
         </Link>
-        <Button variant="ghost" onClick={() => onDelete(task.id)}>
+        <Button variant="ghost" onClick={() => setDeleteConfirmOpen(true)}>
           Delete
         </Button>
       </div>
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={() => onDelete(task.id)}
+        title="Delete task?"
+        description="This cannot be undone."
+        confirmLabel="Delete"
+      />
     </div>
   );
 }

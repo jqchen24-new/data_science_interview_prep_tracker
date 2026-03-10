@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +19,9 @@ export default async function ProgressPage() {
     const { getProgressStats } = await import("@/lib/progress");
     debugInfo = "imported progress";
 
+    const tzOffset = (await cookies()).get("tzOffset")?.value ?? null;
     debugInfo = "fetching stats";
-    const stats = await getProgressStats(userId);
+    const stats = await getProgressStats(userId, tzOffset);
     debugInfo = "stats ok: " + JSON.stringify(Object.keys(stats));
 
     let achievements: unknown[] = [];
@@ -34,7 +37,9 @@ export default async function ProgressPage() {
 
     const { Card, CardTitle } = await import("@/components/ui/Card");
     const { ProgressStats } = await import("@/components/progress/ProgressStats");
-    const { ProgressChartSection } = await import("@/components/progress/ProgressChartSection");
+    const { ProgressChartWithTasks } = await import("@/components/progress/ProgressChartWithTasks");
+
+    const hasNoData = stats.totalMinutes === 0 && stats.completedCount === 0;
 
     return (
       <div className="space-y-8">
@@ -47,11 +52,36 @@ export default async function ProgressPage() {
           </p>
         </div>
 
+        {hasNoData && (
+          <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50/50 p-6 dark:border-neutral-700 dark:bg-neutral-800/30">
+            <p className="text-center text-neutral-600 dark:text-neutral-400">
+              Get started by completing a session — it will show up here.
+            </p>
+            <p className="mt-3 flex justify-center gap-4 text-sm">
+              <Link
+                href="/tasks"
+                className="font-medium text-neutral-900 underline hover:text-neutral-700 dark:text-neutral-200 dark:hover:text-white"
+              >
+                Tasks
+              </Link>
+              <Link
+                href="/plan"
+                className="font-medium text-neutral-900 underline hover:text-neutral-700 dark:text-neutral-200 dark:hover:text-white"
+              >
+                Daily Plan
+              </Link>
+            </p>
+          </div>
+        )}
+
         <ProgressStats stats={stats} />
 
         <Card>
           <CardTitle>Time by tag</CardTitle>
-          <ProgressChartSection data={stats.byTag} />
+          <p className="mb-3 text-sm text-neutral-500 dark:text-neutral-400">
+            Click a bar to see completed tasks for that tag.
+          </p>
+          <ProgressChartWithTasks data={stats.byTag} />
         </Card>
       </div>
     );
