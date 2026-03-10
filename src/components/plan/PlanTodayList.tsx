@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/Button";
 import {
   completeTaskFormAction,
   uncompleteTaskFormAction,
-  deleteTaskFormAction,
 } from "@/app/plan/actions";
+import { PlanTaskDeleteButton } from "@/app/plan/PlanTaskDeleteButton";
 
 function getLocalDateString(): string {
   const d = new Date();
@@ -47,9 +47,18 @@ export function PlanTodayList() {
 
   if (tasks.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-neutral-300 py-6 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-        Nothing scheduled for today. Add from suggestions above or from Tasks.
-      </p>
+      <div className="rounded-lg border border-dashed border-neutral-300 py-6 dark:border-neutral-700">
+        <p className="text-center text-neutral-500 dark:text-neutral-400">
+          Nothing scheduled for today. Add from suggestions above or from{" "}
+          <Link
+            href="/tasks"
+            className="font-medium text-neutral-700 underline hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+          >
+            Tasks
+          </Link>
+          .
+        </p>
+      </div>
     );
   }
 
@@ -108,12 +117,7 @@ export function PlanTodayList() {
                   Edit
                 </Button>
               </Link>
-              <form action={deleteTaskFormAction} className="inline">
-                <input type="hidden" name="taskId" value={task.id} />
-                <Button type="submit" variant="ghost">
-                  Delete
-                </Button>
-              </form>
+              <PlanTaskDeleteButton taskId={task.id} />
             </div>
           </div>
         );

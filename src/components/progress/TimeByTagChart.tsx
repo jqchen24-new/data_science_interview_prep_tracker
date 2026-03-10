@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   BarChart,
   Bar,
@@ -20,9 +21,26 @@ export function TimeByTagChart({ data = [] }: TimeByTagChartProps) {
   const safeData = Array.isArray(data) ? data : [];
   if (safeData.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
-        No data yet. Complete some sessions to see time by tag.
-      </p>
+      <div className="rounded-lg border border-dashed border-neutral-200 bg-neutral-50/50 py-8 dark:border-neutral-700 dark:bg-neutral-800/30">
+        <p className="text-center text-sm text-neutral-500 dark:text-neutral-400">
+          No data yet. Complete sessions to see time by tag.
+        </p>
+        <p className="mt-2 text-center text-sm">
+          <Link
+            href="/tasks"
+            className="font-medium text-neutral-700 underline hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+          >
+            Tasks
+          </Link>
+          {" · "}
+          <Link
+            href="/plan"
+            className="font-medium text-neutral-700 underline hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+          >
+            Daily Plan
+          </Link>
+        </p>
+      </div>
     );
   }
 

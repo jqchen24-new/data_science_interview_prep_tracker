@@ -100,8 +100,12 @@ export function DashboardProgressCard({
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(v: number, _n: string, props: { payload?: { label?: string } }) =>
-                        [props?.payload?.label ?? `${v} min`, ""]
+                      content={({ active, payload }) =>
+                        active && payload?.[0] ? (
+                          <div className="rounded border border-neutral-200 bg-white px-2.5 py-1.5 text-xs shadow dark:border-neutral-700 dark:bg-neutral-800">
+                            {payload[0].payload?.label ?? `${payload[0].value} min`}
+                          </div>
+                        ) : null
                       }
                     />
                   </PieChart>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 
@@ -38,6 +39,8 @@ export default async function ProgressPage() {
     const { ProgressStats } = await import("@/components/progress/ProgressStats");
     const { ProgressChartSection } = await import("@/components/progress/ProgressChartSection");
 
+    const hasNoData = stats.totalMinutes === 0 && stats.completedCount === 0;
+
     return (
       <div className="space-y-8">
         <div>
@@ -48,6 +51,28 @@ export default async function ProgressPage() {
             Time and sessions by tag, plus your streak. Mark tasks as <strong>Done</strong> on Tasks or Daily Plan for them to count here.
           </p>
         </div>
+
+        {hasNoData && (
+          <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50/50 p-6 dark:border-neutral-700 dark:bg-neutral-800/30">
+            <p className="text-center text-neutral-600 dark:text-neutral-400">
+              Get started by completing a session — it will show up here.
+            </p>
+            <p className="mt-3 flex justify-center gap-4 text-sm">
+              <Link
+                href="/tasks"
+                className="font-medium text-neutral-900 underline hover:text-neutral-700 dark:text-neutral-200 dark:hover:text-white"
+              >
+                Tasks
+              </Link>
+              <Link
+                href="/plan"
+                className="font-medium text-neutral-900 underline hover:text-neutral-700 dark:text-neutral-200 dark:hover:text-white"
+              >
+                Daily Plan
+              </Link>
+            </p>
+          </div>
+        )}
 
         <ProgressStats stats={stats} />
 

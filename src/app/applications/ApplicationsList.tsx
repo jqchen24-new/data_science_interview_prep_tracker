@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { deleteApplicationAction } from "./actions";
+import { ApplicationDeleteButton } from "./ApplicationDeleteButton";
 
 type Application = {
   id: string;
@@ -24,11 +24,23 @@ export function ApplicationsList({
 }) {
   if (applications.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-neutral-300 py-8 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+      <div className="rounded-lg border border-dashed border-neutral-300 py-8 dark:border-neutral-700">
+        <p className="text-center text-neutral-500 dark:text-neutral-400">
         {filterStatus
           ? `No applications with status “${filterStatus}”. Try “All” or another filter.`
-          : "No applications yet. Add one above."}
-      </p>
+          : "No applications yet."}
+        </p>
+        {!filterStatus && (
+          <p className="mt-3 text-center">
+            <a
+              href="#add-application-form"
+              className="inline-flex rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200"
+            >
+              Add your first application
+            </a>
+          </p>
+        )}
+      </div>
     );
   }
 
@@ -64,12 +76,10 @@ export function ApplicationsList({
                   Edit
                 </Button>
               </Link>
-              <form action={deleteApplicationAction} className="inline">
-                <input type="hidden" name="id" value={app.id} />
-                <Button type="submit" variant="ghost">
-                  Delete
-                </Button>
-              </form>
+              <ApplicationDeleteButton
+                id={app.id}
+                label={`${app.company} – ${app.role}`}
+              />
             </div>
           </li>
         );

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { TaskCard } from "./TaskCard";
 import type { Task } from "@/app/tasks/actions";
 
@@ -19,9 +20,18 @@ export function TaskList({
   return (
     <div className="space-y-3">
       {tasks.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-neutral-300 py-8 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-          No tasks yet. Add one above or from Daily Plan.
-        </p>
+        <div className="rounded-xl border border-dashed border-neutral-300 py-8 dark:border-neutral-700">
+          <p className="text-center text-neutral-500 dark:text-neutral-400">
+            No tasks yet. Add one above or from{" "}
+            <Link
+              href="/plan"
+              className="font-medium text-neutral-700 underline hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+            >
+              Daily Plan
+            </Link>
+            .
+          </p>
+        </div>
       ) : (
         tasks.map((task) => (
           <TaskCard

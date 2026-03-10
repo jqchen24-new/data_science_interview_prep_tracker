@@ -8,6 +8,8 @@ import { Nav } from "@/components/layout/Nav";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Footer } from "@/components/layout/Footer";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import { ToastProvider } from "@/components/ui/Toast";
+import { SuccessToaster } from "@/components/ui/SuccessToaster";
 import { OnboardingGate } from "@/components/OnboardingGate";
 import { ReminderScheduler } from "@/components/layout/ReminderScheduler";
 import { TimezoneCookie } from "@/components/layout/TimezoneCookie";
@@ -51,13 +53,16 @@ export default async function RootLayout({
     <html lang="en">
       <body className="min-h-screen antialiased">
         <SessionProvider session={session}>
-          <OnboardingGate>
-            <Nav />
-            <div className="flex min-h-screen flex-col">
-              <PageContainer className="flex-1">{children}</PageContainer>
-              <Footer />
-            </div>
-          </OnboardingGate>
+          <ToastProvider>
+            <OnboardingGate>
+              <Nav />
+              <div className="flex min-h-screen flex-col">
+                <PageContainer className="flex-1">{children}</PageContainer>
+                <Footer />
+              </div>
+            </OnboardingGate>
+            <SuccessToaster />
+          </ToastProvider>
         </SessionProvider>
         <ReminderScheduler enabled={reminderEnabled} time={reminderTime} />
         <TimezoneCookie />

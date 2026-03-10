@@ -2,18 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
-const MESSAGES: Record<string, string> = {
-  done: "Marked complete",
-  undone: "Marked incomplete",
-  deleted: "Deleted",
-  added: "Added to today",
-  created: "Task added",
-  updated: "Task updated",
-  app_created: "Application added",
-  app_updated: "Application updated",
-  app_deleted: "Application deleted",
-};
+import { SUCCESS_MESSAGES } from "@/lib/success-messages";
 
 const AUTO_HIDE_MS = 3500;
 
@@ -23,7 +12,7 @@ export function SuccessBanner() {
   const searchParams = useSearchParams();
   const [visible, setVisible] = useState(false);
   const success = searchParams.get("success");
-  const message = success ? MESSAGES[success] ?? "Done" : null;
+  const message = success ? SUCCESS_MESSAGES[success] ?? "Done" : null;
 
   useEffect(() => {
     if (!message) {
