@@ -31,5 +31,5 @@ export async function setProfessionAction(formData: FormData): Promise<void> {
   }
 
   revalidatePath("/", "layout");
-  redirect("/dashboard");
+  redirect("/dashboard?onboarding=1");
 }

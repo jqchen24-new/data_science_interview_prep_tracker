@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getProgressStats, getWeeklyInsights } from "@/lib/progress";
@@ -6,6 +7,7 @@ import { DashboardTodayCardClient } from "@/components/dashboard/DashboardTodayC
 import { DashboardProgressCard } from "@/components/dashboard/DashboardProgressCard";
 import { DashboardInsightsCard } from "@/components/dashboard/DashboardInsightsCard";
 import { DashboardNudge } from "@/components/dashboard/DashboardNudge";
+import { PostOnboardingBanner } from "@/components/dashboard/PostOnboardingBanner";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard" };
@@ -118,6 +120,10 @@ export default async function DashboardPage() {
           The Offer Lab helps you track study sessions, plan your day, and manage job applications—so you can stay on top of your interview prep.
         </p>
       </div>
+
+      <Suspense fallback={null}>
+        <PostOnboardingBanner />
+      </Suspense>
 
       {insightsData && (
         <DashboardNudge insights={insightsData.insights} streak={stats.streak} />
