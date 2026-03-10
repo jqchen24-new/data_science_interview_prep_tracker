@@ -71,11 +71,39 @@ export default async function DashboardPage() {
     );
   }
 
-  const serverToday = new Date();
-  const serverStart = new Date(serverToday);
-  serverStart.setHours(0, 0, 0, 0);
-  const serverEnd = new Date(serverToday);
-  serverEnd.setHours(23, 59, 59, 999);
+  // "Today" in user's timezone so yesterday's tasks don't appear (use tzOffset when available)
+  const tzOffsetNum = tzOffset != null ? parseInt(tzOffset, 10) : NaN;
+  const useTz =
+    !Number.isNaN(tzOffsetNum) && Math.abs(tzOffsetNum) <= 60 * 14;
+  let todayStartIso: string;
+  let todayEndIso: string;
+  if (useTz) {
+    const now = Date.now();
+    const localMoment = new Date(now - tzOffsetNum * 60000);
+    const localDate = localMoment.getUTCDate();
+    const localMonth = localMoment.getUTCMonth();
+    const localYear = localMoment.getUTCFullYear();
+    const dayStart = new Date(
+      Date.UTC(localYear, localMonth, localDate, 0, 0, 0, 0)
+    );
+    const dayEnd = new Date(
+      Date.UTC(localYear, localMonth, localDate, 23, 59, 59, 999)
+    );
+    todayStartIso = new Date(
+      dayStart.getTime() + tzOffsetNum * 60000
+    ).toISOString();
+    todayEndIso = new Date(
+      dayEnd.getTime() + tzOffsetNum * 60000
+    ).toISOString();
+  } else {
+    const serverToday = new Date();
+    const start = new Date(serverToday);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(serverToday);
+    end.setHours(23, 59, 59, 999);
+    todayStartIso = start.toISOString();
+    todayEndIso = end.toISOString();
+  }
 
   return (
     <div className="space-y-8">
@@ -97,8 +125,8 @@ export default async function DashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <DashboardTodayCardClient
-          serverTodayStartIso={serverStart.toISOString()}
-          serverTodayEndIso={serverEnd.toISOString()}
+          serverTodayStartIso={todayStartIso}
+          serverTodayEndIso={todayEndIso}
         />
         <DashboardProgressCard
           weekMinutes={stats.weekMinutes}
