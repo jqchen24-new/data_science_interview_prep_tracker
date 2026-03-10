@@ -4,16 +4,6 @@ import { useEffect, useState } from "react";
 import { getTodayTasksForRange, type TodayTask } from "@/app/dashboard/actions";
 import { DashboardTodayCard } from "./DashboardTodayCard";
 
-/** Get start and end of local "today" as ISO strings (UTC) for the server query. */
-function getLocalTodayRange(): { startIso: string; endIso: string } {
-  const now = new Date();
-  const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(now);
-  end.setHours(23, 59, 59, 999);
-  return { startIso: start.toISOString(), endIso: end.toISOString() };
-}
-
 export function DashboardTodayCardClient({
   serverTodayStartIso,
   serverTodayEndIso,
@@ -24,8 +14,9 @@ export function DashboardTodayCardClient({
   const [tasks, setTasks] = useState<TodayTask[] | null>(null);
 
   useEffect(() => {
-    const { startIso, endIso } = getLocalTodayRange();
-    getTodayTasksForRange(startIso, endIso).then(setTasks);
+    getTodayTasksForRange(serverTodayStartIso, serverTodayEndIso).then(
+      setTasks
+    );
   }, [serverTodayStartIso, serverTodayEndIso]);
 
   if (tasks === null) {
