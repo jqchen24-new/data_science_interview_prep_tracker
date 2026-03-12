@@ -38,6 +38,10 @@ export default async function SignInPage({
       <p className="text-center text-sm text-neutral-500 dark:text-neutral-400">
         Use Google or your email and password.
       </p>
+      <p className="max-w-md text-center text-xs text-neutral-500 dark:text-neutral-400">
+        Google Sign-In only requests your email and name—we don’t access your
+        Gmail, calendar, or any other Google data.
+      </p>
       {justRegistered && (
         <div
           role="status"
