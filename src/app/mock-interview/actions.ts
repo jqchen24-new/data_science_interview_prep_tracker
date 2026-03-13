@@ -83,7 +83,6 @@ export async function submitAnswerAndGetFeedback(
     include: { session: true },
   });
   if (!step) return { ok: false, error: "Question not found." };
-  if (step.userAnswer) return { ok: false, error: "You already answered this question." };
 
   let feedback: string;
   try {

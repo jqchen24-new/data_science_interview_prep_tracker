@@ -103,8 +103,12 @@ export function MockInterviewSessionClient({
     setError(null);
     const next = currentQuestionIndex + 1;
     if (next < steps.length) {
-      router.push(`/mock-interview/session/${sessionId}?step=${next}`);
+      const url = `/mock-interview/session/${sessionId}?step=${next}`;
+      router.push(url);
       router.refresh();
+      if (typeof window !== "undefined") {
+        window.location.assign(url);
+      }
     }
   }
 
@@ -115,13 +119,17 @@ export function MockInterviewSessionClient({
     const form = e.currentTarget;
     const answer = (form.elements.namedItem("answer") as HTMLTextAreaElement)?.value?.trim() ?? "";
     const result = await submitAnswerAndGetFeedback(sessionId, step.id, answer);
-    setLoading(false);
     if (result.ok) {
-      router.push(`/mock-interview/session/${sessionId}?view=feedback&step=${currentQuestionIndex}`);
+      const url = `/mock-interview/session/${sessionId}?view=feedback&step=${currentQuestionIndex}`;
+      router.push(url);
       router.refresh();
+      if (typeof window !== "undefined") {
+        window.location.assign(url);
+      }
     } else {
       setError(result.error);
     }
+    setLoading(false);
   }
 
   return (
