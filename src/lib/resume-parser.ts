@@ -58,13 +58,12 @@ export async function parseResumeFile(
 
 async function parsePdf(buffer: Buffer): Promise<ParseResult> {
   try {
-    const { PDFParse } = await import("pdf-parse");
-    const parser = new PDFParse({ data: new Uint8Array(buffer) });
-    const textResult = await parser.getText();
-    await parser.destroy();
-    const text = typeof textResult?.text === "string" ? textResult.text.trim() : "";
-    if (!text) return { ok: false, error: "Could not extract text from the PDF." };
-    return { ok: true, text };
+    const { extractText, getDocumentProxy } = await import("unpdf");
+    const pdf = await getDocumentProxy(new Uint8Array(buffer));
+    const { text } = await extractText(pdf, { mergePages: true });
+    const trimmed = (text ?? "").trim();
+    if (!trimmed) return { ok: false, error: "Could not extract text from the PDF." };
+    return { ok: true, text: trimmed };
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     return { ok: false, error: `Failed to parse PDF: ${message.slice(0, 100)}` };
