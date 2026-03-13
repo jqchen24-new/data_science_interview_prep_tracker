@@ -22,7 +22,8 @@ export default async function middleware(request: NextRequest, event: NextFetchE
   // Load NextAuth only when first needed so dev server doesn't hang on DB at startup
   const { withAuth } = await import("next-auth/middleware");
   const authMiddleware = withAuth({ pages: { signIn: "/signin" } });
-  return authMiddleware(request, event);
+  // NextRequest is correct at runtime; withAuth augments it. Cast satisfies TS (NextRequestWithAuth).
+  return authMiddleware(request as Parameters<typeof authMiddleware>[0], event);
 }
 
 export const config = {
