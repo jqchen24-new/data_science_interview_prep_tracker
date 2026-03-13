@@ -11,6 +11,7 @@ const links = [
   { href: "/plan", label: "Daily Plan" },
   { href: "/tasks", label: "Tasks" },
   { href: "/applications", label: "Applications" },
+  { href: "/mock-interview", label: "Mock Interview" },
   { href: "/sql-practice", label: "SQL Practice" },
   { href: "/progress", label: "Progress" },
   { href: "/tags", label: "Tags" },

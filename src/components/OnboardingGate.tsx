@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSession, getSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
 
-const PROTECTED_PATHS = ["/dashboard", "/plan", "/tasks", "/applications", "/progress", "/tags", "/settings"];
+const PROTECTED_PATHS = ["/dashboard", "/plan", "/tasks", "/applications", "/progress", "/tags", "/settings", "/mock-interview"];
 const ALLOWED_WITHOUT_PROFESSION = ["/onboarding", "/signin", "/signup", "/settings"];
 
 function isProtectedPath(pathname: string): boolean {

@@ -54,6 +54,7 @@ model User {
   sqlAttempts      SqlAttempt[]
   sqlSuggestions   SqlSuggestion[]
   achievements     UserAchievement[]
+  mockInterviewSessions MockInterviewSession[]
 }
 
 model VerificationToken {
@@ -166,4 +167,32 @@ model UserAchievement {
 
   @@unique([userId, achievementKey])
   @@index([userId])
+}
+
+// Mock Interview: resume upload + AI questions + step-by-step feedback
+model MockInterviewSession {
+  id         String   @id @default(cuid())
+  userId     String
+  resumeText String   // extracted text from PDF/DOCX/TXT
+  fileName   String?  // original file name
+  status     String   @default("in_progress") // in_progress | completed
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  steps      MockInterviewStep[]
+
+  @@index([userId])
+}
+
+model MockInterviewStep {
+  id          String   @id @default(cuid())
+  sessionId   String
+  stepIndex   Int      // 0-based order
+  questionText String
+  userAnswer  String?
+  feedback    String?
+  createdAt   DateTime @default(now())
+  answeredAt  DateTime?
+  session     MockInterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
 }
