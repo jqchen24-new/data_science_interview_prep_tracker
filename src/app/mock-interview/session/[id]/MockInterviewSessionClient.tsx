@@ -102,13 +102,15 @@ export function MockInterviewSessionClient({
   function handleSkip() {
     setError(null);
     const next = currentQuestionIndex + 1;
-    if (next < steps.length) {
-      const url = `/mock-interview/session/${sessionId}?step=${next}`;
-      router.push(url);
-      router.refresh();
-      if (typeof window !== "undefined") {
-        window.location.assign(url);
-      }
+    const url =
+      next < steps.length
+        ? `/mock-interview/session/${sessionId}?step=${next}`
+        : "/mock-interview";
+
+    router.push(url);
+    router.refresh();
+    if (typeof window !== "undefined") {
+      window.location.assign(url);
     }
   }
 
