@@ -71,7 +71,7 @@ export function MockInterviewSessionClient({
           </p>
         </div>
         {isLast ? (
-          <Link href={`/mock-interview/session/${sessionId}`}>
+          <Link href="/mock-interview">
             <Button>Finish</Button>
           </Link>
         ) : (
