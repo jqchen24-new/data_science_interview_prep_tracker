@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import type { NextFetchEvent, NextRequest } from "next/server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,9 +11,7 @@ function isApiPath(pathname: string) {
   return pathname.startsWith("/api/v1") || pathname === "/api/auth/token" || pathname === "/api/auth/google" || pathname === "/api/auth/apple";
 }
 
-let authMiddleware: ((req: NextRequest) => NextResponse | Promise<NextResponse>) | null = null;
-
-export default async function middleware(request: NextRequest) {
+export default async function middleware(request: NextRequest, event: NextFetchEvent) {
   const pathname = request.nextUrl.pathname;
   if (isApiPath(pathname)) {
     if (request.method === "OPTIONS") {
@@ -22,11 +20,9 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   // Load NextAuth only when first needed so dev server doesn't hang on DB at startup
-  if (!authMiddleware) {
-    const { withAuth } = await import("next-auth/middleware");
-    authMiddleware = withAuth({ pages: { signIn: "/signin" } });
-  }
-  return authMiddleware(request);
+  const { withAuth } = await import("next-auth/middleware");
+  const authMiddleware = withAuth({ pages: { signIn: "/signin" } });
+  return authMiddleware(request, event);
 }
 
 export const config = {
