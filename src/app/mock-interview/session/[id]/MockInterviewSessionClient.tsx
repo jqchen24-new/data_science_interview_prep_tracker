@@ -60,6 +60,7 @@ export function MockInterviewSessionClient({
   if (showFeedbackForStepIndex != null && steps[showFeedbackForStepIndex]?.feedback) {
     const step = steps[showFeedbackForStepIndex];
     const isLast = showFeedbackForStepIndex === steps.length - 1;
+    const nextIndex = showFeedbackForStepIndex + 1;
     return (
       <div className="space-y-6">
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
@@ -75,7 +76,7 @@ export function MockInterviewSessionClient({
             <Button>Finish</Button>
           </Link>
         ) : (
-          <Link href={`/mock-interview/session/${sessionId}`}>
+          <Link href={`/mock-interview/session/${sessionId}?step=${nextIndex}`}>
             <Button>Next question</Button>
           </Link>
         )}

@@ -25,8 +25,24 @@ export default async function MockInterviewSessionPage({ params, searchParams }:
   if (!interviewSession) notFound();
 
   const steps = interviewSession.steps;
-  const currentQuestionIndex = steps.findIndex((s) => s.userAnswer == null);
-  const feedbackStepIndex = view === "feedback" && stepParam != null ? parseInt(stepParam, 10) : null;
+
+  const explicitStepIndex =
+    stepParam != null && stepParam !== ""
+      ? Number.parseInt(stepParam, 10)
+      : null;
+
+  const firstUnansweredIndex = steps.findIndex((s) => s.userAnswer == null);
+
+  const currentQuestionIndex =
+    explicitStepIndex != null &&
+    !Number.isNaN(explicitStepIndex) &&
+    explicitStepIndex >= 0 &&
+    explicitStepIndex < steps.length
+      ? explicitStepIndex
+      : firstUnansweredIndex;
+
+  const feedbackStepIndex =
+    view === "feedback" && stepParam != null ? Number.parseInt(stepParam, 10) : null;
   const showFeedback =
     feedbackStepIndex != null &&
     !Number.isNaN(feedbackStepIndex) &&
