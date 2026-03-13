@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { parseResumeFile } from "@/lib/resume-parser";
 import { generateQuestionsFromResume, getFeedbackForAnswer } from "@/lib/mock-interview-openai";
 
-const QUESTION_COUNT = 5;
+const QUESTION_COUNT = 8;
 
 export type CreateSessionResult =
   | { ok: true; sessionId: string }

@@ -62,16 +62,19 @@ async function callOpenAI(prompt: string, maxTokens: number): Promise<string> {
   return data.choices?.[0]?.message?.content?.trim() ?? "";
 }
 
-export async function generateQuestionsFromResume(resumeText: string, count: number = 5): Promise<string[]> {
-  const prompt = `You are an expert interview coach. Based on the following resume text, generate exactly ${count} interview questions. Mix of:
+export async function generateQuestionsFromResume(resumeText: string, count: number = 8): Promise<string[]> {
+  const prompt = `You are an expert interview coach. Based on the following resume text, generate exactly ${count} interview questions.
+
+Types of questions (mix):
 - Resume-based questions (about experience, projects, skills mentioned)
-- Behavioral/situational questions (e.g. "Tell me about a time when...", "How do you handle...")
+- Generic behavioral/situational questions that could be asked of any candidate (e.g. conflict with a manager, handling ambiguity, learning from failure, working with a difficult teammate, prioritization, etc.)
 
 Rules:
 - Output exactly one question per line.
 - Do not number the questions.
 - Each line should be a single question, no extra text.
 - Questions should be clear and professional.
+- At least 3 questions must be generic behavioral/situational questions that do NOT mention any specific project, company, or bullet from the resume.
 
 Resume:
 ---
