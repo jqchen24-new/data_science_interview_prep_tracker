@@ -22,8 +22,14 @@ export function MockInterviewUploadForm() {
       // Log for debugging in browser devtools
       console.log("createSessionFromResume result", result);
       if (result && "ok" in result && result.ok) {
-        router.push(`/mock-interview/session/${result.sessionId}`);
+        const url = `/mock-interview/session/${result.sessionId}`;
+        // Try client-side navigation first
+        router.push(url);
         router.refresh();
+        // Fallback: full-page navigation if URL doesn't change
+        if (typeof window !== "undefined") {
+          window.location.assign(url);
+        }
       } else if (result && "error" in result) {
         setError(result.error || "Something went wrong. Please try again.");
       } else {
