@@ -32,7 +32,6 @@ export function MockInterviewSessionClient({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(currentQuestionIndex);
 
   // Show completion summary when all steps are answered
   if (isComplete && currentQuestionIndex === -1) {
@@ -85,7 +84,7 @@ export function MockInterviewSessionClient({
   }
 
   // No more questions (shouldn't happen if not complete)
-  if (currentIndex < 0 || currentIndex >= steps.length) {
+  if (currentQuestionIndex < 0 || currentQuestionIndex >= steps.length) {
     return (
       <div>
         <p className="text-neutral-600 dark:text-neutral-400">No more questions.</p>
@@ -97,14 +96,15 @@ export function MockInterviewSessionClient({
   }
 
   // Show current question and answer form
-  const step = steps[currentIndex];
-  const questionNumber = currentIndex + 1;
+  const step = steps[currentQuestionIndex];
+  const questionNumber = currentQuestionIndex + 1;
 
   function handleSkip() {
     setError(null);
-    const next = currentIndex + 1;
+    const next = currentQuestionIndex + 1;
     if (next < steps.length) {
-      setCurrentIndex(next);
+      router.push(`/mock-interview/session/${sessionId}?step=${next}`);
+      router.refresh();
     }
   }
 
@@ -117,7 +117,7 @@ export function MockInterviewSessionClient({
     const result = await submitAnswerAndGetFeedback(sessionId, step.id, answer);
     setLoading(false);
     if (result.ok) {
-      router.push(`/mock-interview/session/${sessionId}?view=feedback&step=${currentIndex}`);
+      router.push(`/mock-interview/session/${sessionId}?view=feedback&step=${currentQuestionIndex}`);
       router.refresh();
     } else {
       setError(result.error);
