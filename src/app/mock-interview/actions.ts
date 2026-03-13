@@ -26,7 +26,10 @@ export async function createSessionFromResume(formData: FormData): Promise<Creat
   const fileName = file.name || "resume";
 
   const parseResult = await parseResumeFile(buffer, mimeType, fileName);
-  if (!parseResult.ok) return { ok: false, error: parseResult.error };
+  if (!parseResult.ok) {
+    console.error("Mock interview: resume parse failed", parseResult.error);
+    return { ok: false, error: parseResult.error };
+  }
   const resumeText = parseResult.text;
 
   let questions: string[];
@@ -34,6 +37,7 @@ export async function createSessionFromResume(formData: FormData): Promise<Creat
     questions = await generateQuestionsFromResume(resumeText, QUESTION_COUNT);
   } catch (e) {
     const message = e instanceof Error ? e.message : "Failed to generate questions.";
+    console.error("Mock interview: question generation failed", e);
     return { ok: false, error: message };
   }
 

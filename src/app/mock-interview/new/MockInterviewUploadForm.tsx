@@ -17,13 +17,24 @@ export function MockInterviewUploadForm() {
     setLoading(true);
     const form = e.currentTarget;
     const formData = new FormData(form);
-    const result = await createSessionFromResume(formData);
-    setLoading(false);
-    if (result.ok) {
-      router.push(`/mock-interview/session/${result.sessionId}`);
-      router.refresh();
-    } else {
-      setError(result.error);
+    try {
+      const result = await createSessionFromResume(formData);
+      // Log for debugging in browser devtools
+      console.log("createSessionFromResume result", result);
+      if (result && "ok" in result && result.ok) {
+        router.push(`/mock-interview/session/${result.sessionId}`);
+        router.refresh();
+      } else if (result && "error" in result) {
+        setError(result.error || "Something went wrong. Please try again.");
+      } else {
+        setError("Unexpected response from server. Please try again.");
+      }
+    } catch (err) {
+      console.error("createSessionFromResume threw", err);
+      const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(message);
+    } finally {
+      setLoading(false);
     }
   }
 
