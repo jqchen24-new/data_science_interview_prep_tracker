@@ -32,6 +32,7 @@ export function MockInterviewSessionClient({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(currentQuestionIndex);
 
   // Show completion summary when all steps are answered
   if (isComplete && currentQuestionIndex === -1) {
@@ -83,7 +84,7 @@ export function MockInterviewSessionClient({
   }
 
   // No more questions (shouldn't happen if not complete)
-  if (currentQuestionIndex < 0 || currentQuestionIndex >= steps.length) {
+  if (currentIndex < 0 || currentIndex >= steps.length) {
     return (
       <div>
         <p className="text-neutral-600 dark:text-neutral-400">No more questions.</p>
@@ -95,8 +96,16 @@ export function MockInterviewSessionClient({
   }
 
   // Show current question and answer form
-  const step = steps[currentQuestionIndex];
-  const questionNumber = currentQuestionIndex + 1;
+  const step = steps[currentIndex];
+  const questionNumber = currentIndex + 1;
+
+  function handleSkip() {
+    setError(null);
+    const next = currentIndex + 1;
+    if (next < steps.length) {
+      setCurrentIndex(next);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -107,7 +116,7 @@ export function MockInterviewSessionClient({
     const result = await submitAnswerAndGetFeedback(sessionId, step.id, answer);
     setLoading(false);
     if (result.ok) {
-      router.push(`/mock-interview/session/${sessionId}?view=feedback&step=${currentQuestionIndex}`);
+      router.push(`/mock-interview/session/${sessionId}?view=feedback&step=${currentIndex}`);
       router.refresh();
     } else {
       setError(result.error);
@@ -147,9 +156,14 @@ export function MockInterviewSessionClient({
             placeholder="Type your answer here…"
           />
         </div>
-        <Button type="submit" disabled={loading}>
-          {loading ? "Submitting…" : "Submit and get feedback"}
-        </Button>
+        <div className="flex gap-3">
+          <Button type="submit" disabled={loading}>
+            {loading ? "Submitting…" : "Submit and get feedback"}
+          </Button>
+          <Button type="button" variant="secondary" onClick={handleSkip} disabled={loading}>
+            Skip question
+          </Button>
+        </div>
       </form>
     </div>
   );
