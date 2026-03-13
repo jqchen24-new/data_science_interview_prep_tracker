@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { ensureDefaultTagsForUser } from "@/lib/tags";
-import { isProfessionId } from "@/lib/profession-config";
+import { isProfessionId, type ProfessionId } from "@/lib/profession-config";
 import { requireAuth } from "../require-auth";
 
 export async function GET(request: Request) {
@@ -46,7 +46,7 @@ export async function PATCH(request: Request) {
       data,
     });
     if (data.profession && data.profession !== "") {
-      await ensureDefaultTagsForUser(user!.id, data.profession).catch(() => {});
+      await ensureDefaultTagsForUser(user!.id, data.profession as ProfessionId).catch(() => {});
     }
   } catch (e) {
     console.error("[API v1 me PATCH]", e);
