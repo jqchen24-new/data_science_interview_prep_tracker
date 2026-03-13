@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSqlQuestionBySlug } from "@/lib/sql-practice";
 import { compareSqlResult } from "@/lib/sql-practice";
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
       questionId,
       submittedSql,
       passed,
-      runResult: run.rows as unknown,
+      runResult: run.rows as Prisma.InputJsonValue,
     },
   });
 
