@@ -78,10 +78,20 @@ Resume:
 ${resumeText.slice(0, 14_000)}
 ---`;
 
-  const useGeminiFirst = !!process.env.GEMINI_API_KEY?.trim();
-  const content = useGeminiFirst
-    ? await callGemini(prompt)
-    : await callOpenAI(prompt, MAX_TOKENS_QUESTIONS);
+  const hasGemini = !!process.env.GEMINI_API_KEY?.trim();
+  const hasOpenAI = !!process.env.OPENAI_API_KEY?.trim();
+
+  let content: string;
+  if (hasGemini) {
+    try {
+      content = await callGemini(prompt);
+    } catch (e) {
+      if (!hasOpenAI) throw e;
+      content = await callOpenAI(prompt, MAX_TOKENS_QUESTIONS);
+    }
+  } else {
+    content = await callOpenAI(prompt, MAX_TOKENS_QUESTIONS);
+  }
   const lines = content
     .split("\n")
     .map((l) => l.replace(/^\d+[.)]\s*/, "").trim())
@@ -98,10 +108,20 @@ Candidate's answer: ${userAnswer}
 
 Feedback:`;
 
-  const useGeminiFirst = !!process.env.GEMINI_API_KEY?.trim();
-  const content = useGeminiFirst
-    ? await callGemini(prompt)
-    : await callOpenAI(prompt, MAX_TOKENS_FEEDBACK);
+  const hasGemini = !!process.env.GEMINI_API_KEY?.trim();
+  const hasOpenAI = !!process.env.OPENAI_API_KEY?.trim();
+
+  let content: string;
+  if (hasGemini) {
+    try {
+      content = await callGemini(prompt);
+    } catch (e) {
+      if (!hasOpenAI) throw e;
+      content = await callOpenAI(prompt, MAX_TOKENS_FEEDBACK);
+    }
+  } else {
+    content = await callOpenAI(prompt, MAX_TOKENS_FEEDBACK);
+  }
 
   return content || "No feedback generated.";
 }
